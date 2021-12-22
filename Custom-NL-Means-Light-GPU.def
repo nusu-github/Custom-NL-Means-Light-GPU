@@ -1,0 +1,5 @@
+LIBRARY Custom-NL-Means-Light-GPU.auf
+
+EXPORTS
+	GetFilterTable @1
+
