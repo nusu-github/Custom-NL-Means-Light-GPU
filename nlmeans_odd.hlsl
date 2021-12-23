@@ -1,5 +1,5 @@
 //fxc /Tps_3_0 /Eprocess /DTIME_RADIUS=0 /Foodd_t0.pso nlmeans_odd.hlsl
-sampler2D s[TIME_RADIUS*2+1];
+sampler2D s[TIME_RADIUS * 2 + 1];
 float2 delta[12];
 float2 inverseSize;
 float2 spaceRadius;
@@ -29,35 +29,39 @@ float4 getWeight(float4 v1, float4 v2, float4 v3, float4 v4, float4 t1, float4 t
 float4 process(float2 pos : VPOS) : COLOR0
 {
 	pos = float2(pos.x + offset + 0.25, pos.y * 2 + 0.25) * inverseSize;
-	const float4 v1 = float4(tex2D(s[0], pos+delta[0]).y, tex2D(s[0], pos+delta[1]).xy, tex2D(s[0], pos+delta[2]).x);
-	const float4 v2 = float4(tex2D(s[0], pos+delta[3]).y, tex2D(s[0], pos+delta[4]).xy, tex2D(s[0], pos+delta[5]).x);
-	const float4 v3 = float4(tex2D(s[0], pos+delta[6]).y, tex2D(s[0], pos+delta[7]).xy, tex2D(s[0], pos+delta[8]).x);
-	const float4 v4 = float4(tex2D(s[0], pos+delta[9]).y, tex2D(s[0], pos+delta[10]).xy, tex2D(s[0], pos+delta[11]).x);
+	const float4 v1 = float4(tex2D(s[0], pos + delta[0]).y, tex2D(s[0], pos + delta[1]).xy,
+	                         tex2D(s[0], pos + delta[2]).x);
+	const float4 v2 = float4(tex2D(s[0], pos + delta[3]).y, tex2D(s[0], pos + delta[4]).xy,
+	                         tex2D(s[0], pos + delta[5]).x);
+	const float4 v3 = float4(tex2D(s[0], pos + delta[6]).y, tex2D(s[0], pos + delta[7]).xy,
+	                         tex2D(s[0], pos + delta[8]).x);
+	const float4 v4 = float4(tex2D(s[0], pos + delta[9]).y, tex2D(s[0], pos + delta[10]).xy,
+	                         tex2D(s[0], pos + delta[11]).x);
 	const float2 pos2 = pos - spaceRadius * inverseSize;
 	float4 sum = 0;
 	float4 value = 0;
-	
-	[unroll]for (int dt=0; dt<TIME_RADIUS*2+1; dt++)
+
+	[unroll]for (int dt = 0; dt < TIME_RADIUS * 2 + 1; dt++)
 	{
 		pos.y = pos2.y;
-		[loop]for (int i=0; i<range; i++)
+		[loop]for (int i = 0; i < range; i++)
 		{
 			pos.x = pos2.x;
 			float4 t1, t2, t3, t4;
 			float4 w;
-			t1 = float4(tex2D(s[0], pos+delta[0]).xy, tex2D(s[0], pos+delta[1]).xy);
-			t2 = float4(tex2D(s[0], pos+delta[3]).xy, tex2D(s[0], pos+delta[4]).xy);
-			t3 = float4(tex2D(s[0], pos+delta[6]).xy, tex2D(s[0], pos+delta[7]).xy);
-			t4 = float4(tex2D(s[0], pos+delta[9]).xy, tex2D(s[0], pos+delta[10]).xy);
-			
+			t1 = float4(tex2D(s[0], pos + delta[0]).xy, tex2D(s[0], pos + delta[1]).xy);
+			t2 = float4(tex2D(s[0], pos + delta[3]).xy, tex2D(s[0], pos + delta[4]).xy);
+			t3 = float4(tex2D(s[0], pos + delta[6]).xy, tex2D(s[0], pos + delta[7]).xy);
+			t4 = float4(tex2D(s[0], pos + delta[9]).xy, tex2D(s[0], pos + delta[10]).xy);
+
 			w = getWeight(v1, v2, v3, v4, t1, t2, t3, t4);
 			sum += w;
 			value += float4(t2.yz, t3.yz) * w;
-			[loop]for(int j=0; j<range2; j++)
+			[loop]for (int j = 0; j < range2; j++)
 			{
 				float4 t5, t6;
-				t5 = float4(tex2D(s[0], pos+delta[2]).xy, tex2D(s[0], pos+delta[5]).xy);
-				t6 = float4(tex2D(s[0], pos+delta[8]).xy, tex2D(s[0], pos+delta[11]).xy);
+				t5 = float4(tex2D(s[0], pos + delta[2]).xy, tex2D(s[0], pos + delta[5]).xy);
+				t6 = float4(tex2D(s[0], pos + delta[8]).xy, tex2D(s[0], pos + delta[11]).xy);
 				t1 = float4(t1.yzw, t5.x);
 				t2 = float4(t2.yzw, t5.z);
 				t3 = float4(t3.yzw, t6.x);
@@ -65,7 +69,7 @@ float4 process(float2 pos : VPOS) : COLOR0
 				w = getWeight(v1, v2, v3, v4, t1, t2, t3, t4);
 				sum += w;
 				value += float4(t2.yz, t3.yz) * w;
-			
+
 				t1 = float4(t1.yzw, t5.y);
 				t2 = float4(t2.yzw, t5.w);
 				t3 = float4(t3.yzw, t6.y);

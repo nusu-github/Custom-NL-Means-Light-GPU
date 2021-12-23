@@ -670,13 +670,13 @@ typedef struct {
 	int		x,y;				//	設定ウインドウのサイズ (FILTER_FLAG_WINDOW_SIZEが立っている時に有効)
 								//	設定値に FILTER_WINDOW_SIZE_CLIENT をORして設定するとクライアント領域でのサイズ指定になります。
 								//	設定値に FILTER_WINDOW_SIZE_ADD をORして設定すると標準のサイズからの追加分の指定になります。
-	TCHAR	*name;				//	フィルタの名前
+	WCHAR	*name;				//	フィルタの名前
 	int		track_n;			//	トラックバーの数
-	TCHAR	**track_name;		//	トラックバーの名前郡へのポインタ(トラックバー数が0ならNULLでよい)
+	WCHAR	**track_name;		//	トラックバーの名前郡へのポインタ(トラックバー数が0ならNULLでよい)
 	int		*track_default;		//	トラックバーの初期値郡へのポインタ(トラックバー数が0ならNULLでよい)
 	int		*track_s,*track_e;	//	トラックバーの数値の下限上限 (NULLなら全て0～256)
 	int		check_n;			//	チェックボックスの数
-	TCHAR	**check_name;		//	チェックボックスの名前郡へのポインタ(チェックボックス数が0ならNULLでよい)
+	WCHAR	**check_name;		//	チェックボックスの名前郡へのポインタ(チェックボックス数が0ならNULLでよい)
 	int		*check_default;		//	チェックボックスの初期値郡へのポインタ(チェックボックス数が0ならNULLでよい)
 								//	初期値がマイナス値の場合はボタンになります。ボタンを押したときにWM_COMMAND( WPARAM = MID_FILTER_BUTTON + n )のウィンドウメッセージが送られます
 	BOOL	(*func_proc)( void *fp,FILTER_PROC_INFO *fpip );
@@ -731,7 +731,7 @@ typedef struct {
 	int		*check;				//	チェックボックスの設定値郡へのポインタ (AviUtl側で設定されます)
 	void	*ex_data_ptr;		//	拡張データ領域へのポインタ (FILTER_FLAG_EX_DATAが立っている時に有効)
 	int		ex_data_size;		//	拡張データサイズ (FILTER_FLAG_EX_DATAが立っている時に有効)
-	TCHAR	*information;		//	フィルタ情報へのポインタ (FILTER_FLAG_EX_INFORMATIONが立っている時に有効)
+	WCHAR	*information;		//	フィルタ情報へのポインタ (FILTER_FLAG_EX_INFORMATIONが立っている時に有効)
 	BOOL	(*func_save_start)( void *fp,int s,int e,void *editp );
 								//	セーブが開始される直前に呼ばれる関数へのポインタ (NULLなら呼ばれません)
 								//	s	 	: セーブする先頭フレーム
@@ -771,7 +771,7 @@ typedef struct {
 								//	title 		: 表示するタイトルバーの文字列
 								//	max_title 	: titleのバッファサイズ
 								//  戻り値	: 成功ならTRUE
-	TCHAR	*dll_path;			//	PluginsディレクトリのサブディレクトリにDLLがある時のみ、サブディレクトリ名が入ります。
+	WCHAR	*dll_path;			//	PluginsディレクトリのサブディレクトリにDLLがある時のみ、サブディレクトリ名が入ります。
 	int		reserve[2];			//	拡張用に予約されてます。NULLにしてください。
 
 } FILTER;
@@ -835,13 +835,13 @@ typedef struct {
 typedef struct {
 	int			flag;
 	int			x,y;
-	TCHAR		*name;
+	WCHAR		*name;
 	int			track_n;
-	TCHAR		**track_name;
+	WCHAR		**track_name;
 	int			*track_default;
 	int			*track_s,*track_e;
 	int			check_n;
-	TCHAR		**check_name;
+	WCHAR		**check_name;
 	int			*check_default;
 	BOOL		(*func_proc)( FILTER *fp,FILTER_PROC_INFO *fpip );
 	BOOL		(*func_init)( FILTER *fp );
@@ -851,7 +851,7 @@ typedef struct {
 	int			*track,*check;
 	void		*ex_data_ptr;
 	int			ex_data_size;
-	TCHAR		*information;
+	WCHAR		*information;
 	BOOL		(*func_save_start)( FILTER *fp,int s,int e,void *editp );
 	BOOL		(*func_save_end)( FILTER *fp,void *editp );
 	EXFUNC		*exfunc;
@@ -862,7 +862,7 @@ typedef struct {
 	BOOL		(*func_project_load)( FILTER *fp,void *editp,void *data,int size );
 	BOOL		(*func_project_save)( FILTER *fp,void *editp,void *data,int *size );
 	BOOL		(*func_modify_title)( FILTER *fp,void *editp,int frame,LPSTR title,int max_title );
-	TCHAR		*dll_path;
+	WCHAR		*dll_path;
 	int			reserve[2];
 } FILTER_DLL;
 

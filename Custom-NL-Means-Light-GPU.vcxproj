@@ -28,7 +28,6 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -46,6 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <TargetExt>.auf</TargetExt>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
@@ -57,8 +57,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
@@ -75,14 +74,15 @@
       <Command>.\hlsl_build.bat
 </Command>
     </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0411</Culture>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
-      <Optimization>Full</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -98,6 +98,9 @@
       <Command>.\hlsl_build.bat
 </Command>
     </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0411</Culture>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="nlmeansGPU.cpp" />
