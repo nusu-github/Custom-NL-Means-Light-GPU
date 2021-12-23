@@ -11,11 +11,11 @@
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 #endif
 
-#define TRACK_N    8                                    //    トラックバーの数
-TCHAR* track_name[] = { "輝度空間","輝度時間","輝度分散","色差空間","色差時間","色差分散","アダプタ","保護" };//    トラックバーの名前
-int track_default[] = { 1,   0,  40,  1,  0,  40,  0, 100 };//    トラックバーの初期値
-int track_s[] = { 0,   0,   1,  0,  0,   1,  0, 0 };      //    トラックバーの下限値
-int track_e[] = { 5,   3, 100,  5,  3, 100,  0, 100 };    //    トラックバーの上限値
+#define TRACK_N    7                                    //    トラックバーの数
+TCHAR* track_name[] = { "輝度空間","輝度時間","輝度分散","色差空間","色差時間","色差分散","保護" };//    トラックバーの名前
+int track_default[] = { 1,   0,  40,  1,  0,  40, 100 };//    トラックバーの初期値
+int track_s[] = { 0,   0,   1,  0,  0,   1, 0 };      //    トラックバーの下限値
+int track_e[] = { 5,   3, 100,  5,  3, 100, 100 };    //    トラックバーの上限値
 #define CHECK_N 1
 TCHAR* check_name[] = { "Use UpdateSurface" };
 int        check_default[] = { 1 };
@@ -23,7 +23,7 @@ int        check_default[] = { 1 };
 FILTER_DLL filter = {
     FILTER_FLAG_EX_INFORMATION | FILTER_FLAG_NO_INIT_DATA,    //    フィルタのフラグ
     0,0,                            //    設定ウインドウのサイズ (FILTER_FLAG_WINDOW_SIZEが立っている時に有効)
-    "NL-Means-Light for GPU TypeC", //    フィルタの名前
+    "Custom NL-Means-Light", //    フィルタの名前
     TRACK_N,                        //    トラックバーの数 (0なら名前初期値等もNULLでよい)
     track_name,                     //    トラックバーの名前郡へのポインタ
     track_default,                  //    トラックバーの初期値郡へのポインタ
@@ -39,7 +39,7 @@ FILTER_DLL filter = {
     NULL,NULL,                      //    システムで使いますので使用しないでください
     NULL,                           //  拡張データ領域へのポインタ (FILTER_FLAG_EX_DATAが立っている時に有効)
     NULL,                           //  拡張データサイズ (FILTER_FLAG_EX_DATAが立っている時に有効)
-    "NL-Means-Light for GPU TypeC Ver.111125",
+    "Custom NL-Means-Light for Ver.1.0.0",
     //  フィルタ情報へのポインタ (FILTER_FLAG_EX_INFORMATIONが立っている時に有効)
     NULL,                           //    セーブが開始される直前に呼ばれる関数へのポインタ (NULLなら呼ばれません)
     NULL,                           //    セーブが終了した直前に呼ばれる関数へのポインタ (NULLなら呼ばれません)
@@ -74,8 +74,8 @@ typedef struct
     int radius2;
 } TexReadWriteParam;
 
-IDirect3D9* direct3D;
-IDirect3DDevice9* device;
+IDirect3D9Ex* direct3D;
+IDirect3DDevice9Ex* device;
 IDirect3DTexture9* SrcSysTexture;
 IDirect3DTexture9* DestTexture;
 IDirect3DTexture9* DestSysTexture;
@@ -114,6 +114,8 @@ BYTE* work;
 int worksize;
 float str;
 
+UINT adapter_id;
+
 static const __m128i i128_pw_2048 = _mm_set1_epi16(2048);
 static const __m128i i128_pw_4096 = _mm_set1_epi16(4096);
 static const __m128i i128_CbCr_rev1 = _mm_set_epi16(0, 4096, 0, 0, 4096, 0, 0, 4096);
@@ -129,10 +131,10 @@ EXTERN_C FILTER_DLL __declspec(dllexport)* __stdcall GetFilterTable(void)
 {
     D3D9ON12_ARGS d3d9on12Args{};
     d3d9on12Args.Enable9On12 = true;
-    direct3D = Direct3DCreate9On12(D3D_SDK_VERSION, &d3d9on12Args,1);
+    Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9on12Args, 1, &direct3D);
     if (direct3D != NULL)
     {
-        track_e[6] = direct3D->GetAdapterCount() - 1;
+        adapter_id = direct3D->GetAdapterCount() - 1;
 
     }
     return &filter;
@@ -146,10 +148,10 @@ void ShowErrorMsg(char* message)
 void ReleaseTexture()
 {
     SAFE_RELEASE(SrcSysTexture);
-    for (int i = 0; i < 7; i++)
+    for (auto& [Tex, index] : SrcTexture)
     {
-        SAFE_RELEASE(SrcTexture[i].Tex);
-        SrcTexture[i].index = -1;
+        SAFE_RELEASE(Tex);
+        index = -1;
     }
     SAFE_RELEASE(DestTexture);
     SAFE_RELEASE(DestSysTexture);
@@ -175,14 +177,14 @@ void FinalizeD3D()
 
 BOOL skipfilter = FALSE;
 
-bool InitD3D(HWND hwnd, HMODULE hModule, UINT _adapter)
+bool InitD3D(HWND hwnd, HMODULE hModule)
 {
     D3D9ON12_ARGS d3d9on12Args{};
     d3d9on12Args.Enable9On12 = true;
     while (TRUE)
     {
         if (direct3D == NULL) {
-            direct3D = Direct3DCreate9On12(D3D_SDK_VERSION, &d3d9on12Args, 1);
+            Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9on12Args, 1, &direct3D);
             if (direct3D == NULL)
             {
                 ShowErrorMsg("Direct3DCreate9に失敗");
@@ -190,15 +192,14 @@ bool InitD3D(HWND hwnd, HMODULE hModule, UINT _adapter)
                 return false;
             }
         }
-        adapter = _adapter;
         D3DPRESENT_PARAMETERS presentParameters = { 0 };
         presentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
         presentParameters.Windowed = TRUE;
         presentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
 
-        if (FAILED(direct3D->CreateDevice(adapter, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &presentParameters, &device)))
+        if (FAILED(direct3D->CreateDeviceEx(adapter_id, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &presentParameters, nullptr, &device)))
         {
-            if (MessageBox(NULL, "CreateDeviceに失敗", "NL-Means Light for GPU", MB_RETRYCANCEL | MB_ICONWARNING) == IDCANCEL)
+            if (MessageBox(NULL, "CreateDeviceに失敗", "Custom NL-Means-Light", MB_RETRYCANCEL | MB_ICONWARNING) == IDCANCEL)
             {
                 skipfilter = TRUE;
                 return false;
@@ -267,7 +268,7 @@ bool InitTexture(int width, int height, int radius, int radius2)
     halfw = w8 / 2;
     halfh = (height + 1) / 2;
 
-    int DestTexWidth, SrcTexWidth;
+    int DestTexWidth{}, SrcTexWidth{};
     switch (mode)
     {
     case 1:
@@ -287,9 +288,9 @@ bool InitTexture(int width, int height, int radius, int radius2)
     {
         return false;
     }
-    for (int i = 0; i < 7; i++)
+    for (auto& [Tex, index] : SrcTexture)
     {
-        if (CreateTexture(SrcTexWidth, height, D3DUSAGE_DYNAMIC, D3DFMT_G16R16, &SrcTexture[i].Tex) == FALSE)
+        if (CreateTexture(SrcTexWidth, height, D3DUSAGE_DYNAMIC, D3DFMT_G16R16, &Tex) == FALSE)
         {
             return false;
         }
@@ -342,9 +343,9 @@ bool InitTexture(int width, int height, int radius, int radius2)
 
 void ClearCache(int count)
 {
-    for (int i = 0; i < 7; i++)
+    for (auto& [Tex, index] : SrcTexture)
     {
-        SrcTexture[i].index = -1;
+        index = -1;
     }
     maxCacheCount = count;
     currentCacheIndex = 0;
@@ -1390,7 +1391,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
     }
     if (initialized == FALSE)
     {
-        if (InitD3D(fp->hwnd, fp->dll_hinst, fp->track[6]) == FALSE)
+        if (InitD3D(fp->hwnd, fp->dll_hinst) == FALSE)
         {
             FinalizeD3D();
             copyframe(fp, fpip);
@@ -1403,7 +1404,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
     {
         FinalizeD3D();
         prerenderingFrameIndex = -1;
-        if (InitD3D(fp->hwnd, fp->dll_hinst, fp->track[6]) == false)
+        if (InitD3D(fp->hwnd, fp->dll_hinst) == false)
         {
             FinalizeD3D();
             copyframe(fp, fpip);
@@ -1586,20 +1587,20 @@ BOOL func_update(FILTER* fp, int status)
     D3DADAPTER_IDENTIFIER9 ai;
     if (direct3D == NULL)
     {
-        if (InitD3D(fp->hwnd, fp->dll_hinst, fp->track[6]) == false)
+        if (InitD3D(fp->hwnd, fp->dll_hinst) == false)
         {
             return FALSE;
         }
     }
-    direct3D->GetAdapterIdentifier(fp->track[6], 0, &ai);
+    direct3D->GetAdapterIdentifier(adapter_id, 0, &ai);
     char buf[512];
-    sprintf_s(buf, sizeof(buf), "NL-Means Light[%s]", ai.Description);
+    sprintf_s(buf, sizeof(buf), "nlmeans [%s]", ai.Description);
     SetWindowText(fp->hwnd, buf);
-    if (adapter != fp->track[6])
+    if (adapter != adapter_id)
     {
         prerenderingFrameIndex = -1;
         FinalizeD3D();
-        if (InitD3D(fp->hwnd, fp->dll_hinst, fp->track[6]) == false)
+        if (InitD3D(fp->hwnd, fp->dll_hinst) == false)
         {
             return FALSE;
         }
