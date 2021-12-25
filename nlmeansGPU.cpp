@@ -1,8 +1,7 @@
-#include <cstdio>
-#include <d3d9on12.h>
 #include <DirectXMath.h>
 #include <Windows.h>
-#include <intrin.h>
+#include <cstdio>
+#include <d3d9on12.h>
 
 #include "filter.h"
 #include "wavelet.h"

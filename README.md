@@ -5,7 +5,7 @@ Nilpo氏のNL-Means_Light_GPUプラグインの改造版
 ## 動作条件
 
 - Windows10 以上
-- SSE2対応 CPU
+- AVX2対応 CPU
 - DirectX12対応 GPU
 - Aviutl 1.10
 - [DirectX End-User Runtimes](https://www.microsoft.com/ja-jp/download/details.aspx?id=35)(多分)

@@ -1,27 +1,30 @@
 #pragma once
-typedef struct
-{
-	BYTE* src;
-	BYTE* dest;
-	LONG atomic_counter;
-	int srcwidth;
-	int srcheight;
-	int destwidth;
-	int destheight;
-	int src_bpl;
-	int dest_bpl;
-} WAVELET_PARAM, *LPWAVELET_PARAM;
+#include <Windows.h>
 
-typedef struct
+using WAVELET_PARAM = struct
 {
-	BYTE* src;
-	BYTE* dest;
-	int width;
-	int height;
-	int src_bpl;
-	int dest_bpl;
-	float str;
-} BLEND_PARAM;
+    BYTE* src;
+    BYTE* dest;
+    LONG atomic_counter;
+    int srcwidth;
+    int srcheight;
+    int destwidth;
+    int destheight;
+    int src_bpl;
+    int dest_bpl;
+};
+using LPWAVELET_PARAM = WAVELET_PARAM*;
+
+using BLEND_PARAM = struct
+{
+    BYTE* src;
+    BYTE* dest;
+    int width;
+    int height;
+    int src_bpl;
+    int dest_bpl;
+    float str;
+};
 
 extern BYTE* work;
 extern int worksize;

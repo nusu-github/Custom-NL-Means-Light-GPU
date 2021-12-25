@@ -1,5 +1,6 @@
-#include <windows.h>
 #include "wavelet.h"
+
+#include <Windows.h>
 #include <intrin.h>
 
 static const __m128 predict = {-0.5f, -0.5f, -0.5f, -0.5f};
@@ -16,7 +17,7 @@ void fwt53(int thread_id, int thread_num, void* param1, void* param2)
 	BYTE* dest = prm->dest;
 	BYTE* ywork = work + worksize * thread_id;
 	BYTE* xwork = ywork + 64 * (4 + 2 + 2);
-	LONG* atomic_counter = &prm->atomic_counter;
+	LONG* atomic_counter = (LONG*)(&prm->atomic_counter);
 	int src_bpl = prm->src_bpl;
 	int dest_bpl = prm->dest_bpl;
 
