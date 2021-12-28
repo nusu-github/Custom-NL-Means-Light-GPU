@@ -10,10 +10,10 @@ int range2;
 
 float4 getWeight(float4 v1, float4 v2, float4 v3, float4 v4, float4 t1, float4 t2, float4 t3, float4 t4)
 {
-	float4 d1, d2, d3, sum;
-	d1 = t1 - v1;
-	d2 = t2 - v2;
-	d3 = t3 - v3;
+	float4 sum;
+	float4 d1 = t1 - v1;
+	float4 d2 = t2 - v2;
+	float4 d3 = t3 - v3;
 	d1 *= d1;
 	d2 *= d2;
 	d3 *= d3;

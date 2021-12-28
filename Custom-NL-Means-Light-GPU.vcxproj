@@ -23,14 +23,13 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
+    <InterproceduralOptimization>true</InterproceduralOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -47,23 +46,33 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <TargetExt>.auf</TargetExt>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <TargetExt>.auf</TargetExt>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
-    <VcpkgAutoLink>false</VcpkgAutoLink>
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <IntelJCCErratum>true</IntelJCCErratum>
-      <AdditionalOptions>-fasm-blocks %(AdditionalOptions)</AdditionalOptions>
+      <Parallelization>true</Parallelization>
+      <FlushDenormalResultsToZero>true</FlushDenormalResultsToZero>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
+      <CheckPointers>MpxRw</CheckPointers>
+      <UseProcessorExtensions>AVX2</UseProcessorExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMP>GenerateParallelCode</OpenMP>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -71,7 +80,6 @@
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Manifest />
     <ResourceCompile />
@@ -86,11 +94,19 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <IntelJCCErratum>true</IntelJCCErratum>
-      <AdditionalOptions>-fasm-blocks %(AdditionalOptions)</AdditionalOptions>
+      <Parallelization>true</Parallelization>
+      <FlushDenormalResultsToZero>true</FlushDenormalResultsToZero>
+      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
+      <CheckPointers>MpxRw</CheckPointers>
+      <UseProcessorExtensions>AVX2</UseProcessorExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMP>GenerateParallelCode</OpenMP>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <Optimization>Full</Optimization>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,7 +114,6 @@
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <Manifest />
     <ResourceCompile />

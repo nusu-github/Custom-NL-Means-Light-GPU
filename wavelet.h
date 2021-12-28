@@ -1,29 +1,29 @@
-#pragma once
+﻿#pragma once
 #include <Windows.h>
 
 using WAVELET_PARAM = struct
 {
-    BYTE* src;
-    BYTE* dest;
-    LONG atomic_counter;
-    int srcwidth;
-    int srcheight;
-    int destwidth;
-    int destheight;
-    int src_bpl;
-    int dest_bpl;
+	BYTE* src;
+	BYTE* dest;
+	LONG atomic_counter;
+	int srcwidth;
+	int srcheight;
+	int destwidth;
+	int destheight;
+	int src_bpl;
+	int dest_bpl;
 };
 using LPWAVELET_PARAM = WAVELET_PARAM*;
 
 using BLEND_PARAM = struct
 {
-    BYTE* src;
-    BYTE* dest;
-    int width;
-    int height;
-    int src_bpl;
-    int dest_bpl;
-    float str;
+	BYTE* src;
+	BYTE* dest;
+	int width;
+	int height;
+	int src_bpl;
+	int dest_bpl;
+	float str;
 };
 
 extern BYTE* work;

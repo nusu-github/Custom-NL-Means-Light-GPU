@@ -10,10 +10,10 @@ int range2;
 
 float4 getWeight(float4 v1, float4 v2, float4 v3, float4 v4, float4 t1, float4 t2, float4 t3, float4 t4)
 {
-	float4 d1, d2, d3, sum;
-	d1 = t1 - v1;
-	d2 = t2 - v2;
-	d3 = t3 - v3;
+	float4 sum;
+	float4 d1 = t1 - v1;
+	float4 d2 = t2 - v2;
+	float4 d3 = t3 - v3;
 	d1 *= d1;
 	d2 *= d2;
 	d3 *= d3;
@@ -48,13 +48,12 @@ float4 process(float2 pos : VPOS) : COLOR0
 		{
 			pos.x = pos2.x;
 			float4 t1, t2, t3, t4;
-			float4 w;
 			t1 = float4(tex2D(s[0], pos + delta[0]).xy, tex2D(s[0], pos + delta[1]).xy);
 			t2 = float4(tex2D(s[0], pos + delta[3]).xy, tex2D(s[0], pos + delta[4]).xy);
 			t3 = float4(tex2D(s[0], pos + delta[6]).xy, tex2D(s[0], pos + delta[7]).xy);
 			t4 = float4(tex2D(s[0], pos + delta[9]).xy, tex2D(s[0], pos + delta[10]).xy);
 
-			w = getWeight(v1, v2, v3, v4, t1, t2, t3, t4);
+			float4 w = getWeight(v1, v2, v3, v4, t1, t2, t3, t4);
 			sum += w;
 			value += float4(t2.yz, t3.yz) * w;
 			[loop]for (int j = 0; j < range2; j++)

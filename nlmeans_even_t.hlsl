@@ -12,8 +12,8 @@ int range2;
 
 float4 getWeight(float4 v1, float4 v2, float4 v3, float4 v4, float4 t1, float4 t2, float4 t3, float4 t4)
 {
-	float4 d1, sum2;
-	d1 = t1 - v1;
+	float4 sum2;
+	float4 d1 = t1 - v1;
 	d1 *= d1;
 	sum2.xy = (d1.xy + d1.zw) * 0.07 + d1.yz * 0.12;
 	d1 = t2 - v2;

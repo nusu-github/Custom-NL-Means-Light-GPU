@@ -1,29 +1,29 @@
-#include "wavelet.h"
+﻿#include "wavelet.h"
 
 #include <Windows.h>
 #include <intrin.h>
 
-static const __m128 predict = {-0.5f, -0.5f, -0.5f, -0.5f};
-static const __m128 update = {0.25f, 0.25f, 0.25f, 0.25f};
-static const __m128 i_predict = {0.5f, 0.5f, 0.5f, 0.5f};
-static const __m128 i_update = {-0.25f, -0.25f, -0.25f, -0.25f};
+static const __m256 predict = {-0.5f, -0.5f, -0.5f, -0.5f};
+static const __m256 update = {0.25f, 0.25f, 0.25f, 0.25f};
+static const __m256 i_predict = {0.5f, 0.5f, 0.5f, 0.5f};
+static const __m256 i_update = {-0.25f, -0.25f, -0.25f, -0.25f};
 
 void fwt53(int thread_id, int thread_num, void* param1, void* param2)
 {
-	WAVELET_PARAM* prm = (WAVELET_PARAM*)param1;
+	auto prm = static_cast<WAVELET_PARAM*>(param1);
 	int width = prm->srcwidth;
 	int height = prm->srcheight;
 	BYTE* src = prm->src;
 	BYTE* dest = prm->dest;
 	BYTE* ywork = work + worksize * thread_id;
 	BYTE* xwork = ywork + 64 * (4 + 2 + 2);
-	LONG* atomic_counter = (LONG*)(&prm->atomic_counter);
+	auto atomic_counter = &prm->atomic_counter;
 	int src_bpl = prm->src_bpl;
 	int dest_bpl = prm->dest_bpl;
 
 	int maxblock = (height + 3) / 4;
-	int offsety = (prm->destheight / 2) * dest_bpl;
-	int offsetx = (prm->destwidth / 2) * 12;
+	int offsety = prm->destheight / 2 * dest_bpl;
+	int offsetx = prm->destwidth / 2 * 12;
 	while (TRUE)
 	{
 		int block = InterlockedIncrement(atomic_counter) - 1;
@@ -495,14 +495,14 @@ void fwt53(int thread_id, int thread_num, void* param1, void* param2)
 
 void fwt53_LL(int thread_id, int thread_num, void* param1, void* param2)
 {
-	WAVELET_PARAM* prm = (WAVELET_PARAM*)param1;
+	auto prm = static_cast<WAVELET_PARAM*>(param1);
 	int width = prm->srcwidth;
 	int height = prm->srcheight;
 	BYTE* src = prm->src;
 	BYTE* dest = prm->dest;
 	BYTE* ywork = work + worksize * thread_id;
 	BYTE* xwork = ywork + 64 * (8 + 2 + 2);
-	LONG* atomic_counter = (LONG*)(&prm->atomic_counter);
+	auto atomic_counter = &prm->atomic_counter;
 	int src_bpl = prm->src_bpl;
 	int dest_bpl = prm->dest_bpl;
 	int maxblock = (height + 7) / 8;
@@ -936,22 +936,22 @@ void fwt53_LL(int thread_id, int thread_num, void* param1, void* param2)
 
 void iwt53(int thread_id, int thread_num, void* param1, void* param2)
 {
-	WAVELET_PARAM* prm = (WAVELET_PARAM*)param1;
+	auto prm = static_cast<WAVELET_PARAM*>(param1);
 	int width = prm->destwidth;
-	int height = (prm->destheight + 7) & ~7;
+	int height = prm->destheight + 7 & ~7;
 	int halfw = prm->destwidth / 2;
 	int halfh = height / 2;
 	BYTE* src = prm->src;
 	BYTE* dest = prm->dest;
 	BYTE* ywork = work + worksize * thread_id;
 	BYTE* xwork = ywork + 64 * (4 + 2 + 2);
-	LONG* atomic_counter = (LONG*)(&prm->atomic_counter);
+	auto atomic_counter = &prm->atomic_counter;
 	int src_bpl = prm->src_bpl;
 	int dest_bpl = prm->dest_bpl;
 	int maxblock = (height + 3) / 4;
-	int v_hi = (prm->srcheight / 2) * src_bpl;
-	int h_hi = (prm->srcwidth / 2) * 12;
-	int xworkhalf = ((((halfw + 15) & ~15) + 1) * 48 + 127) & ~127;
+	int v_hi = prm->srcheight / 2 * src_bpl;
+	int h_hi = prm->srcwidth / 2 * 12;
+	int xworkhalf = ((halfw + 15 & ~15) + 1) * 48 + 127 & ~127;
 	int xloop1 = (halfw * 3 + 15) / 16;
 	while (TRUE)
 	{
@@ -1445,7 +1445,7 @@ void iwt53(int thread_id, int thread_num, void* param1, void* param2)
 
 void blend_lo(int thread_id, int thread_num, void* param1, void* param2)
 {
-	BLEND_PARAM* prm = (BLEND_PARAM*)param1;
+	auto prm = static_cast<BLEND_PARAM*>(param1);
 	int width = prm->width;
 	int height = prm->height;
 	int y_start = thread_id * height / thread_num;
