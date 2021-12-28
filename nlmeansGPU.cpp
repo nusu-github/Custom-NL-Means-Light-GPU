@@ -11,18 +11,18 @@
 #endif
 
 #define TRACK_N    7                                    //    トラックバーの数
-WCHAR* track_name[TRACK_N] = { (WCHAR*)"輝度空間",(WCHAR*)"輝度時間", (WCHAR*)"輝度分散", (WCHAR*)"色差空間", (WCHAR*)"色差時間", (WCHAR*)"色差分散", (WCHAR*)"保護" }; //    トラックバーの名前
-int track_default[TRACK_N] = { 1, 0, 40, 1, 0, 40, 100 }; //    トラックバーの初期値
-int track_s[TRACK_N] = { 0, 0, 1, 0, 0, 1, 0 }; //    トラックバーの下限値
-int track_e[TRACK_N] = { 5, 3, 100, 5, 3, 100, 100 }; //    トラックバーの上限値
+TCHAR* track_name[TRACK_N] = {"輝度空間", "輝度時間", "輝度分散", "色差空間", "色差時間", "色差分散", "保護"}; //    トラックバーの名前
+int track_default[TRACK_N] = {1, 0, 40, 1, 0, 40, 100}; //    トラックバーの初期値
+int track_s[TRACK_N] = {0, 0, 1, 0, 0, 1, 0}; //    トラックバーの下限値
+int track_e[TRACK_N] = {5, 3, 100, 5, 3, 100, 100}; //    トラックバーの上限値
 #define CHECK_N 1
-WCHAR* check_name[CHECK_N] = { (WCHAR*)"Use UpdateSurface" };
-int check_default[CHECK_N] = { 1 };
+TCHAR* check_name[CHECK_N] = {"Use UpdateSurface"};
+int check_default[CHECK_N] = {1};
 
 FILTER_DLL filter = {
 	FILTER_FLAG_EX_INFORMATION | FILTER_FLAG_NO_INIT_DATA, //    フィルタのフラグ
 	0, 0, //    設定ウインドウのサイズ (FILTER_FLAG_WINDOW_SIZEが立っている時に有効)
-	(WCHAR*)"Custom NL-Means-Light", //    フィルタの名前
+	"Custom NL-Means-Light", //    フィルタの名前
 	TRACK_N, //    トラックバーの数 (0なら名前初期値等もNULLでよい)
 	track_name, //    トラックバーの名前郡へのポインタ
 	track_default, //    トラックバーの初期値郡へのポインタ
@@ -38,29 +38,29 @@ FILTER_DLL filter = {
 	nullptr, nullptr, //    システムで使いますので使用しないでください
 	nullptr, //  拡張データ領域へのポインタ (FILTER_FLAG_EX_DATAが立っている時に有効)
 	NULL, //  拡張データサイズ (FILTER_FLAG_EX_DATAが立っている時に有効)
-	(WCHAR*)"Custom NL-Means-Light for Ver.1.0.0",
+	"Custom NL-Means-Light for Ver.1.0.0",
 	//  フィルタ情報へのポインタ (FILTER_FLAG_EX_INFORMATIONが立っている時に有効)
 	nullptr, //    セーブが開始される直前に呼ばれる関数へのポインタ (NULLなら呼ばれません)
 	nullptr, //    セーブが終了した直前に呼ばれる関数へのポインタ (NULLなら呼ばれません)
 };
 
-typedef struct
+using TextureCache = struct
 {
 	IDirect3DTexture9* Tex;
 	int index;
-} TextureCache;
+};
 
-typedef struct
+using VERTEX = struct
 {
 	float x, y, z, w;
-} VERTEX;
+};
 
-typedef struct
+using int4 = struct
 {
 	int x, y, z, w;
-} int4;
+};
 
-typedef struct
+using TexReadWriteParam = struct
 {
 	short* src;
 	short* src2;
@@ -72,7 +72,7 @@ typedef struct
 	int height;
 	int radius;
 	int radius2;
-} TexReadWriteParam;
+};
 
 IDirect3D9Ex* direct3D;
 IDirect3DDevice9Ex* device;
@@ -116,13 +116,13 @@ float str;
 
 UINT adapter_id;
 
-static const __m128i i128_pw_2048 = _mm_set1_epi16(2048);
-static const __m128i i128_pw_4096 = _mm_set1_epi16(4096);
-static const __m128i i128_CbCr_rev1 = _mm_set_epi16(0, 4096, 0, 0, 4096, 0, 0, 4096);
-static const __m128i i128_CbCr_rev2 = _mm_set_epi16(4096, 0, 0, 4096, 0, 0, 4096, 0);
-static const __m128i i128_CbCr_rev3 = _mm_set_epi16(0, 0, 4096, 0, 0, 4096, 0, 0);
-static const __m128i i128_pw_16384 = _mm_set1_epi16(16384);
-static const __m128i i128_pw_4 = _mm_set1_epi16(4);
+static const __m256i i128_pw_2048 = _mm256_set1_epi16(2048);
+static const __m256i i128_pw_4096 = _mm256_set1_epi16(4096);
+static const __m256i i128_CbCr_rev1 = _mm256_set_epi32(0, 4096, 0, 0, 4096, 0, 0, 4096);
+static const __m256i i128_CbCr_rev2 = _mm256_set_epi32(4096, 0, 0, 4096, 0, 0, 4096, 0);
+static const __m256i i128_CbCr_rev3 = _mm256_set_epi32(0, 0, 4096, 0, 0, 4096, 0, 0);
+static const __m256i i128_pw_16384 = _mm256_set1_epi16(16384);
+static const __m256i i128_pw_4 = _mm256_set1_epi16(4);
 
 //---------------------------------------------------------------------
 //        フィルタ構造体のポインタを渡す関数
@@ -192,7 +192,7 @@ bool InitD3D(HWND hwnd, HMODULE hModule)
 				return false;
 			}
 		}
-		D3DPRESENT_PARAMETERS presentParameters = { 0 };
+		D3DPRESENT_PARAMETERS presentParameters = {0};
 		presentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
 		presentParameters.Windowed = TRUE;
 		presentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
@@ -267,7 +267,7 @@ bool InitTexture(int width, int height, int radius, int radius2)
 	srcHeight = height;
 	lumaRadius = radius;
 	chromaRadius = radius2;
-	int w8 = (width + 7) & ~7;
+	const int w8 = width + 7 & ~7;
 	halfw = w8 / 2;
 	halfh = (height + 1) / 2;
 
@@ -284,7 +284,7 @@ bool InitTexture(int width, int height, int radius, int radius2)
 		break;
 	case 3:
 		DestTexWidth = halfw * 3;
-		SrcTexWidth = ((w8 + 16 + 16) / 2) * 3;
+		SrcTexWidth = (w8 + 16 + 16) / 2 * 3;
 		break;
 	}
 	if (CreateSystemTexture(SrcTexWidth, height, D3DFMT_G16R16, &SrcSysTexture) == FALSE)
@@ -307,35 +307,35 @@ bool InitTexture(int width, int height, int radius, int radius2)
 		return false;
 	}
 
-	VERTEX v[12] =
+	const VERTEX v[12] =
 	{
 		{0.0f, 0.0f, 0.0f, 1.0f},
-		{(float)halfw, 0.0f, 0.0f, 1.0f},
-		{0.0f, (float)halfh, 0.0f, 1.0f},
-		{(float)halfw, (float)halfh, 0.0f, 1.0f},
+		{static_cast<float>(halfw), 0.0f, 0.0f, 1.0f},
+		{0.0f, static_cast<float>(halfh), 0.0f, 1.0f},
+		{static_cast<float>(halfw), static_cast<float>(halfh), 0.0f, 1.0f},
 
-		{(float)halfw, 0.0f, 0.0f, 1.0f},
-		{(float)halfw * 2, 0.0f, 0.0f, 1.0f},
-		{(float)halfw, (float)halfh, 0.0f, 1.0f},
-		{(float)halfw * 2, (float)halfh, 0.0f, 1.0f},
+		{static_cast<float>(halfw), 0.0f, 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 2, 0.0f, 0.0f, 1.0f},
+		{static_cast<float>(halfw), static_cast<float>(halfh), 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 2, static_cast<float>(halfh), 0.0f, 1.0f},
 
-		{(float)halfw * 2, 0.0f, 0.0f, 1.0f},
-		{(float)halfw * 3, 0.0f, 0.0f, 1.0f},
-		{(float)halfw * 2, (float)halfh, 0.0f, 1.0f},
-		{(float)halfw * 3, (float)halfh, 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 2, 0.0f, 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 3, 0.0f, 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 2, static_cast<float>(halfh), 0.0f, 1.0f},
+		{static_cast<float>(halfw) * 3, static_cast<float>(halfh), 0.0f, 1.0f},
 	};
 	device->CreateVertexBuffer(sizeof(VERTEX) * 12, D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &vertexBuffer, nullptr);
 	void* p;
 	vertexBuffer->Lock(0, 0, &p, 0);
-	CopyMemory(p, v, sizeof(v));
+	CopyMemory(p, v, sizeof v);
 	vertexBuffer->Unlock();
 
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			pscf[i * 3 + j].x = (float)(j - 1) / SrcTexWidth;
-			pscf[i * 3 + j].y = (float)(i - 1) / height;
+			pscf[i * 3 + j].x = static_cast<float>(j - 1) / SrcTexWidth;
+			pscf[i * 3 + j].y = static_cast<float>(i - 1) / height;
 		}
 	}
 
@@ -356,250 +356,250 @@ void ClearCache(int count)
 
 void WriteTextureMode1(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = prm->height * thread_id / thread_num;
 	int y_end = prm->height * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
 	int xloopcount = prm->width - 15;
-	int xloopcount2 = (16 - (prm->width & 15)) & 7;
+	int xloopcount2 = 16 - (prm->width & 15) & 7;
 
 	int srcstep = prm->srcpitch - prm->width * 6;
-	int deststep = prm->destpitch - ((prm->width + 7) & ~7) * 2 - 16;
-	short* src = prm->src + (prm->srcpitch * y_start) / 2;
-	short* dest = prm->dest + (prm->destpitch * y_start) / 2;
+	int deststep = prm->destpitch - (prm->width + 7 & ~7) * 2 - 16;
+	short* src = prm->src + prm->srcpitch * y_start / 2;
+	short* dest = prm->dest + prm->destpitch * y_start / 2;
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov eax, yloopcount
 		mov ebx, xloopcount
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm7, i128_pw_16384
 
 		yloop :
 		pinsrw xmm0, [esi], 0
-			punpcklwd xmm0, xmm0
-			pshufd xmm0, xmm0, 0
-			paddw xmm0, xmm7
-			movntdq[edi], xmm0
-			add edi, 16
-			mov ecx, ebx
-			align 16
-			xloop:
+		punpcklwd xmm0, xmm0
+		pshufd xmm0, xmm0, 0
+		paddw xmm0, xmm7
+		movntdq[edi], xmm0
+		add edi, 16
+		mov ecx, ebx
+		align 16
+		xloop:
 		pinsrw xmm0, [esi], 0
-			pinsrw xmm0, [esi + 6], 1
-			pinsrw xmm0, [esi + 12], 2
-			pinsrw xmm0, [esi + 18], 3
-			pinsrw xmm0, [esi + 24], 4
-			pinsrw xmm0, [esi + 30], 5
-			pinsrw xmm0, [esi + 36], 6
-			pinsrw xmm0, [esi + 42], 7
-			pinsrw xmm1, [esi + 48], 0
-			pinsrw xmm1, [esi + 54], 1
-			pinsrw xmm1, [esi + 60], 2
-			pinsrw xmm1, [esi + 66], 3
-			pinsrw xmm1, [esi + 72], 4
-			pinsrw xmm1, [esi + 78], 5
-			pinsrw xmm1, [esi + 84], 6
-			pinsrw xmm1, [esi + 90], 7
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + 16], xmm1
-			add esi, 96
-			add edi, 32
-			sub ecx, 16
-			jnle xloop
-			add ecx, 15
-			jz xloop3_end
+		pinsrw xmm0, [esi + 6], 1
+		pinsrw xmm0, [esi + 12], 2
+		pinsrw xmm0, [esi + 18], 3
+		pinsrw xmm0, [esi + 24], 4
+		pinsrw xmm0, [esi + 30], 5
+		pinsrw xmm0, [esi + 36], 6
+		pinsrw xmm0, [esi + 42], 7
+		pinsrw xmm1, [esi + 48], 0
+		pinsrw xmm1, [esi + 54], 1
+		pinsrw xmm1, [esi + 60], 2
+		pinsrw xmm1, [esi + 66], 3
+		pinsrw xmm1, [esi + 72], 4
+		pinsrw xmm1, [esi + 78], 5
+		pinsrw xmm1, [esi + 84], 6
+		pinsrw xmm1, [esi + 90], 7
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + 16], xmm1
+		add esi, 96
+		add edi, 32
+		sub ecx, 16
+		jnle xloop
+		add ecx, 15
+		jz xloop3_end
 
-			align 16
-			xloop2:
+		align 16
+		xloop2:
 		mov dx, [esi]
-			add dx, 16384
-			mov[edi], dx
-			add esi, 6
-			add edi, 2
-			sub ecx, 1
-			jnz xloop2
-
-			mov ecx, xloopcount2
-			test ecx, ecx
-			jz xloop3_end
-			mov dx, [esi - 6]
-			add dx, 16384
-			align 16
-			xloop3:
+		add dx, 16384
 		mov[edi], dx
-			add edi, 2
-			sub ecx, 1
-			jnz xloop3
-			xloop3_end :
-		pinsrw xmm0, [esi - 6], 0
-			punpcklwd xmm0, xmm0
-			pshufd xmm0, xmm0, 0
-			paddw xmm0, xmm7
-			movntdq[edi], xmm0
-			add esi, srcstep
-			add edi, deststep
-			sub eax, 1
-			jnz yloop
+		add esi, 6
+		add edi, 2
+		sub ecx, 1
+		jnz xloop2
 
-			pop ebx
-	}
+		mov ecx, xloopcount2
+		test ecx, ecx
+		jz xloop3_end
+		mov dx, [esi - 6]
+		add dx, 16384
+		align 16
+		xloop3:
+		mov[edi], dx
+		add edi, 2
+		sub ecx, 1
+		jnz xloop3
+		xloop3_end :
+		pinsrw xmm0, [esi - 6], 0
+		punpcklwd xmm0, xmm0
+		pshufd xmm0, xmm0, 0
+		paddw xmm0, xmm7
+		movntdq[edi], xmm0
+		add esi, srcstep
+		add edi, deststep
+		sub eax, 1
+		jnz yloop
+
+		pop ebx
+		}
 }
 
 void WriteTextureMode2(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = prm->height * thread_id / thread_num;
 	int y_end = prm->height * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
 	int xloopcount = prm->width - 7;
-	int xloopcount2 = (8 - (prm->width & 7)) & 7;
+	int xloopcount2 = 8 - (prm->width & 7) & 7;
 	int srcstep = prm->srcpitch - prm->width * 6;
-	int deststep = prm->destpitch - ((prm->width + 7) & ~7) * 2 - 16;
-	int span = ((prm->width + 7) & ~7) * 2 + 16 + 16;
-	short* src = prm->src + (prm->srcpitch * y_start) / 2;
-	short* dest = prm->dest + (prm->destpitch * y_start) / 2;
+	int deststep = prm->destpitch - (prm->width + 7 & ~7) * 2 - 16;
+	int span = (prm->width + 7 & ~7) * 2 + 16 + 16;
+	short* src = prm->src + prm->srcpitch * y_start / 2;
+	short* dest = prm->dest + prm->destpitch * y_start / 2;
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov edx, span
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm7, i128_pw_16384
 
 		yloop :
 		pinsrw xmm0, [esi + 2], 0
-			pinsrw xmm1, [esi + 4], 0
-			punpcklwd xmm0, xmm0
-			punpcklwd xmm1, xmm1
-			pshufd xmm0, xmm0, 0
-			pshufd xmm1, xmm1, 0
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			add edi, 16
-			mov ecx, xloopcount
-			align 16
-			xloop:
-		movdqa xmm0, [esi]
-			movdqa xmm1, [esi + 16]
-			movdqa xmm2, [esi + 32]
-			// 00 10 20 01 11 21 02 12
-			// 22 03 13 23 04 14 24 05
-			// 15 25 06 16 26 07 17 27
-			punpcklqdq xmm3, xmm0
-			psrldq xmm0, 8
-			punpcklqdq xmm4, xmm1
-			punpckhwd xmm3, xmm1
-			punpcklwd xmm0, xmm2
-			punpckhwd xmm4, xmm2
-			// 00 04 10 14 20 24 01 05
-			// 11 15 21 25 02 06 12 26
-			// 22 26 03 07 13 17 23 27
-			punpcklqdq xmm1, xmm3
-			psrldq xmm3, 8
-			punpcklqdq xmm2, xmm0
-			punpckhwd xmm1, xmm0
-			punpcklwd xmm3, xmm4
-			punpckhwd xmm2, xmm4
-			// 00 02 04 06 10 12 14 16
-			// 20 22 24 26 01 03 05 07
-			// 11 13 15 17 21 23 25 27
-			psrldq xmm1, 8
-			pslldq xmm3, 8
-			punpcklwd xmm1, xmm2
-			punpckhwd xmm3, xmm2
-			// 10 11 12 13 14 15 16 17
-			// 20 21 22 23 24 25 26 27
-			paddw xmm1, xmm7
-			paddw xmm3, xmm7
-			movntdq[edi], xmm1
-			movntdq[edi + edx], xmm3
-			add esi, 48
-			add edi, 16
-			sub ecx, 8
-			jnle xloop
+		pinsrw xmm1, [esi + 4], 0
+		punpcklwd xmm0, xmm0
+		punpcklwd xmm1, xmm1
+		pshufd xmm0, xmm0, 0
+		pshufd xmm1, xmm1, 0
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		add edi, 16
+		mov ecx, xloopcount
+		align 16
+		xloop:
+		vmovdqa xmm0, [esi]
+		vmovdqa xmm1, [esi + 16]
+		vmovdqa xmm2, [esi + 32]
+		// 00 10 20 01 11 21 02 12
+		// 22 03 13 23 04 14 24 05
+		// 15 25 06 16 26 07 17 27
+		punpcklqdq xmm3, xmm0
+		psrldq xmm0, 8
+		punpcklqdq xmm4, xmm1
+		punpckhwd xmm3, xmm1
+		punpcklwd xmm0, xmm2
+		punpckhwd xmm4, xmm2
+		// 00 04 10 14 20 24 01 05
+		// 11 15 21 25 02 06 12 26
+		// 22 26 03 07 13 17 23 27
+		punpcklqdq xmm1, xmm3
+		psrldq xmm3, 8
+		punpcklqdq xmm2, xmm0
+		punpckhwd xmm1, xmm0
+		punpcklwd xmm3, xmm4
+		punpckhwd xmm2, xmm4
+		// 00 02 04 06 10 12 14 16
+		// 20 22 24 26 01 03 05 07
+		// 11 13 15 17 21 23 25 27
+		psrldq xmm1, 8
+		pslldq xmm3, 8
+		punpcklwd xmm1, xmm2
+		punpckhwd xmm3, xmm2
+		// 10 11 12 13 14 15 16 17
+		// 20 21 22 23 24 25 26 27
+		paddw xmm1, xmm7
+		paddw xmm3, xmm7
+		movntdq[edi], xmm1
+		movntdq[edi + edx], xmm3
+		add esi, 48
+		add edi, 16
+		sub ecx, 8
+		jnle xloop
 
-			add ecx, 7
-			jnz xloop2
-			pinsrw xmm0, [esi - 6 + 2], 0
-			pinsrw xmm1, [esi - 6 + 4], 0
-			punpcklwd xmm0, xmm0
-			punpcklwd xmm1, xmm1
-			pshufd xmm0, xmm0, 0
-			pshufd xmm1, xmm1, 0
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			add esi, srcstep
-			add edi, deststep
-			sub yloopcount, 1
-			jnz yloop
-			jmp yloop_end
-			align 16
-			xloop2:
+		add ecx, 7
+		jnz xloop2
+		pinsrw xmm0, [esi - 6 + 2], 0
+		pinsrw xmm1, [esi - 6 + 4], 0
+		punpcklwd xmm0, xmm0
+		punpcklwd xmm1, xmm1
+		pshufd xmm0, xmm0, 0
+		pshufd xmm1, xmm1, 0
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		add esi, srcstep
+		add edi, deststep
+		sub yloopcount, 1
+		jnz yloop
+		jmp yloop_end
+		align 16
+		xloop2:
 		mov ax, [esi + 2]
-			mov bx, [esi + 4]
-			add ax, 16384
-			add bx, 16384
-			mov[edi], ax
-			mov[edi + edx], bx
-			add esi, 6
-			add edi, 2
-			sub ecx, 1
-			jnz xloop2
-
-			mov ecx, xloopcount2
-			mov ax, [esi - 6 + 2]
-			mov bx, [esi - 6 + 4]
-			add ax, 16384
-			add bx, 16384
-			align 16
-			xloop3:
+		mov bx, [esi + 4]
+		add ax, 16384
+		add bx, 16384
 		mov[edi], ax
-			mov[edi + edx], bx
-			add edi, 2
-			sub ecx, 1
-			jnz xloop3
+		mov[edi + edx], bx
+		add esi, 6
+		add edi, 2
+		sub ecx, 1
+		jnz xloop2
 
-			pinsrw xmm0, eax, 0
-			pinsrw xmm1, ebx, 0
-			punpcklwd xmm0, xmm0
-			punpcklwd xmm1, xmm1
-			pshufd xmm0, xmm0, 0
-			pshufd xmm1, xmm1, 0
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			add esi, srcstep
-			add edi, deststep
-			sub yloopcount, 1
-			jnz yloop
-			yloop_end :
+		mov ecx, xloopcount2
+		mov ax, [esi - 6 + 2]
+		mov bx, [esi - 6 + 4]
+		add ax, 16384
+		add bx, 16384
+		align 16
+		xloop3:
+		mov[edi], ax
+		mov[edi + edx], bx
+		add edi, 2
+		sub ecx, 1
+		jnz xloop3
+
+		pinsrw xmm0, eax, 0
+		pinsrw xmm1, ebx, 0
+		punpcklwd xmm0, xmm0
+		punpcklwd xmm1, xmm1
+		pshufd xmm0, xmm0, 0
+		pshufd xmm1, xmm1, 0
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		add esi, srcstep
+		add edi, deststep
+		sub yloopcount, 1
+		jnz yloop
+		yloop_end :
 		pop ebx
-	}
+		}
 }
 
 void WriteTextureMode3(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = prm->height * thread_id / thread_num;
 	int y_end = prm->height * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
 	int xloopcount = prm->width - 7;
-	int span = ((prm->width + 7) & ~7) * 2 + 16 + 16;
+	int span = (prm->width + 7 & ~7) * 2 + 16 + 16;
 	int srcstep = prm->srcpitch - (prm->width & ~7) * 6;
 	int deststep = prm->destpitch - (prm->width & ~7) * 2 - 16;
-	short* src = prm->src + (prm->srcpitch * y_start) / 2;
-	short* dest = prm->dest + (prm->destpitch * y_start) / 2;
+	short* src = prm->src + prm->srcpitch * y_start / 2;
+	short* dest = prm->dest + prm->destpitch * y_start / 2;
 	__m128i i128_mask, i128_mask2;
 
-	WORD* p1 = (WORD*)&i128_mask;
-	WORD* p2 = (WORD*)&i128_mask2;
+	auto p1 = (WORD*)&i128_mask;
+	auto p2 = (WORD*)&i128_mask2;
 	for (int i = 0; i < prm->width % 8; i++)
 	{
 		*p1 = 0xFFFF;
@@ -616,169 +616,169 @@ void WriteTextureMode3(int thread_id, int thread_num, void* param1, void* param2
 	}
 
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov eax, xloopcount
 		mov ebx, yloopcount
 		mov edx, span
-		movdqa xmm6, i128_mask2
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm6, i128_mask2
+		vmovdqa xmm7, i128_pw_16384
 
 		yloop :
 		pinsrw xmm0, [esi], 0
-			pinsrw xmm1, [esi + 2], 0
-			pinsrw xmm2, [esi + 4], 0
-			punpcklwd xmm0, xmm0
-			punpcklwd xmm1, xmm1
-			punpcklwd xmm2, xmm2
-			pshufd xmm0, xmm0, 0
-			pshufd xmm1, xmm1, 0
-			pshufd xmm2, xmm2, 0
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			paddw xmm2, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			movntdq[edi + edx * 2], xmm2
-			add edi, 16
-			mov ecx, eax
-			align 16
-			xloop:
-		movdqa xmm0, [esi]
-			movdqa xmm1, [esi + 16]
-			movdqa xmm2, [esi + 32]
-			// 00 10 20 01 11 21 02 12
-			// 22 03 13 23 04 14 24 05
-			// 15 25 06 16 26 07 17 27
-			punpcklqdq xmm3, xmm0
-			psrldq xmm0, 8
-			punpcklqdq xmm4, xmm1
-			punpckhwd xmm3, xmm1
-			punpcklwd xmm0, xmm2
-			punpckhwd xmm4, xmm2
-			// 00 04 10 14 20 24 01 05
-			// 11 15 21 25 02 06 12 26
-			// 22 26 03 07 13 17 23 27
-			punpcklqdq xmm1, xmm3
-			psrldq xmm3, 8
-			punpcklqdq xmm2, xmm0
-			punpckhwd xmm1, xmm0
-			punpcklwd xmm3, xmm4
-			punpckhwd xmm2, xmm4
-			// 00 02 04 06 10 12 14 16
-			// 20 22 24 26 01 03 05 07
-			// 11 13 15 17 21 23 25 27
-			punpcklqdq xmm0, xmm1
-			psrldq xmm1, 8
-			punpcklqdq xmm4, xmm3
-			punpckhwd xmm0, xmm3
-			punpcklwd xmm1, xmm2
-			punpckhwd xmm4, xmm2
-			// 00 01 02 03 04 05 06 07
-			// 10 11 12 13 14 15 16 17
-			// 20 21 22 23 24 25 26 27
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			paddw xmm4, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			movntdq[edi + edx * 2], xmm4
-			add esi, 48
-			add edi, 16
-			sub ecx, 8
-			jnle xloop
+		pinsrw xmm1, [esi + 2], 0
+		pinsrw xmm2, [esi + 4], 0
+		punpcklwd xmm0, xmm0
+		punpcklwd xmm1, xmm1
+		punpcklwd xmm2, xmm2
+		pshufd xmm0, xmm0, 0
+		pshufd xmm1, xmm1, 0
+		pshufd xmm2, xmm2, 0
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		paddw xmm2, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		movntdq[edi + edx * 2], xmm2
+		add edi, 16
+		mov ecx, eax
+		align 16
+		xloop:
+		vmovdqa xmm0, [esi]
+		vmovdqa xmm1, [esi + 16]
+		vmovdqa xmm2, [esi + 32]
+		// 00 10 20 01 11 21 02 12
+		// 22 03 13 23 04 14 24 05
+		// 15 25 06 16 26 07 17 27
+		punpcklqdq xmm3, xmm0
+		psrldq xmm0, 8
+		punpcklqdq xmm4, xmm1
+		punpckhwd xmm3, xmm1
+		punpcklwd xmm0, xmm2
+		punpckhwd xmm4, xmm2
+		// 00 04 10 14 20 24 01 05
+		// 11 15 21 25 02 06 12 26
+		// 22 26 03 07 13 17 23 27
+		punpcklqdq xmm1, xmm3
+		psrldq xmm3, 8
+		punpcklqdq xmm2, xmm0
+		punpckhwd xmm1, xmm0
+		punpcklwd xmm3, xmm4
+		punpckhwd xmm2, xmm4
+		// 00 02 04 06 10 12 14 16
+		// 20 22 24 26 01 03 05 07
+		// 11 13 15 17 21 23 25 27
+		punpcklqdq xmm0, xmm1
+		psrldq xmm1, 8
+		punpcklqdq xmm4, xmm3
+		punpckhwd xmm0, xmm3
+		punpcklwd xmm1, xmm2
+		punpckhwd xmm4, xmm2
+		// 00 01 02 03 04 05 06 07
+		// 10 11 12 13 14 15 16 17
+		// 20 21 22 23 24 25 26 27
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		paddw xmm4, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		movntdq[edi + edx * 2], xmm4
+		add esi, 48
+		add edi, 16
+		sub ecx, 8
+		jnle xloop
 
-			add ecx, 7
-			jnz last16pixel
-			pinsrw xmm0, [esi - 6], 0
-			pinsrw xmm1, [esi - 4], 0
-			pinsrw xmm2, [esi - 2], 0
-			punpcklwd xmm0, xmm0
-			punpcklwd xmm1, xmm1
-			punpcklwd xmm2, xmm2
-			pshufd xmm0, xmm0, 0
-			pshufd xmm1, xmm1, 0
-			pshufd xmm2, xmm2, 0
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			paddw xmm2, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			movntdq[edi + edx * 2], xmm2
-			add esi, srcstep
-			add edi, deststep
-			sub ebx, 1
-			jnz yloop
-			jmp yloop_end
+		add ecx, 7
+		jnz last16pixel
+		pinsrw xmm0, [esi - 6], 0
+		pinsrw xmm1, [esi - 4], 0
+		pinsrw xmm2, [esi - 2], 0
+		punpcklwd xmm0, xmm0
+		punpcklwd xmm1, xmm1
+		punpcklwd xmm2, xmm2
+		pshufd xmm0, xmm0, 0
+		pshufd xmm1, xmm1, 0
+		pshufd xmm2, xmm2, 0
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		paddw xmm2, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		movntdq[edi + edx * 2], xmm2
+		add esi, srcstep
+		add edi, deststep
+		sub ebx, 1
+		jnz yloop
+		jmp yloop_end
 
-			last16pixel :
+		last16pixel :
 		lea ecx, [ecx + ecx * 2]
-			movdqa xmm0, [esi]
-			movdqa xmm1, [esi + 16]
-			movdqa xmm2, [esi + 32]
-			movdqa xmm5, i128_mask
-			punpcklqdq xmm3, xmm0
-			psrldq xmm0, 8
-			punpcklqdq xmm4, xmm1
-			punpckhwd xmm3, xmm1
-			punpcklwd xmm0, xmm2
-			punpckhwd xmm4, xmm2
-			punpcklqdq xmm1, xmm3
-			psrldq xmm3, 8
-			punpcklqdq xmm2, xmm0
-			punpckhwd xmm1, xmm0
-			punpcklwd xmm3, xmm4
-			punpckhwd xmm2, xmm4
-			punpcklqdq xmm0, xmm1
-			psrldq xmm1, 8
-			punpcklqdq xmm4, xmm3
-			punpckhwd xmm0, xmm3
-			punpcklwd xmm1, xmm2
-			punpckhwd xmm4, xmm2
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			paddw xmm4, xmm7
-			pand xmm0, xmm5
-			pand xmm1, xmm5
-			pand xmm4, xmm5
-			pinsrw xmm2, [esi + ecx * 2 - 6], 0
-			pinsrw xmm3, [esi + ecx * 2 - 4], 0
-			pinsrw xmm5, [esi + ecx * 2 - 2], 0
-			punpcklwd xmm2, xmm2
-			punpcklwd xmm3, xmm3
-			punpcklwd xmm5, xmm5
-			pshufd xmm2, xmm2, 0
-			pshufd xmm3, xmm3, 0
-			pshufd xmm5, xmm5, 0
-			paddw xmm2, xmm7
-			paddw xmm3, xmm7
-			paddw xmm5, xmm7
-			movntdq[edi + 16], xmm2
-			movntdq[edi + edx + 16], xmm3
-			movntdq[edi + edx * 2 + 16], xmm5
-			pand xmm2, xmm6
-			pand xmm3, xmm6
-			pand xmm5, xmm6
-			por xmm0, xmm2
-			por xmm1, xmm3
-			por xmm4, xmm5
-			movntdq[edi], xmm0
-			movntdq[edi + edx], xmm1
-			movntdq[edi + edx * 2], xmm4
-			add esi, srcstep
-			add edi, deststep
-			sub ebx, 1
-			jnz yloop
-			yloop_end :
+		vmovdqa xmm0, [esi]
+		vmovdqa xmm1, [esi + 16]
+		vmovdqa xmm2, [esi + 32]
+		vmovdqa xmm5, i128_mask
+		punpcklqdq xmm3, xmm0
+		psrldq xmm0, 8
+		punpcklqdq xmm4, xmm1
+		punpckhwd xmm3, xmm1
+		punpcklwd xmm0, xmm2
+		punpckhwd xmm4, xmm2
+		punpcklqdq xmm1, xmm3
+		psrldq xmm3, 8
+		punpcklqdq xmm2, xmm0
+		punpckhwd xmm1, xmm0
+		punpcklwd xmm3, xmm4
+		punpckhwd xmm2, xmm4
+		punpcklqdq xmm0, xmm1
+		psrldq xmm1, 8
+		punpcklqdq xmm4, xmm3
+		punpckhwd xmm0, xmm3
+		punpcklwd xmm1, xmm2
+		punpckhwd xmm4, xmm2
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		paddw xmm4, xmm7
+		pand xmm0, xmm5
+		pand xmm1, xmm5
+		pand xmm4, xmm5
+		pinsrw xmm2, [esi + ecx * 2 - 6], 0
+		pinsrw xmm3, [esi + ecx * 2 - 4], 0
+		pinsrw xmm5, [esi + ecx * 2 - 2], 0
+		punpcklwd xmm2, xmm2
+		punpcklwd xmm3, xmm3
+		punpcklwd xmm5, xmm5
+		pshufd xmm2, xmm2, 0
+		pshufd xmm3, xmm3, 0
+		pshufd xmm5, xmm5, 0
+		paddw xmm2, xmm7
+		paddw xmm3, xmm7
+		paddw xmm5, xmm7
+		movntdq[edi + 16], xmm2
+		movntdq[edi + edx + 16], xmm3
+		movntdq[edi + edx * 2 + 16], xmm5
+		pand xmm2, xmm6
+		pand xmm3, xmm6
+		pand xmm5, xmm6
+		por xmm0, xmm2
+		por xmm1, xmm3
+		por xmm4, xmm5
+		movntdq[edi], xmm0
+		movntdq[edi + edx], xmm1
+		movntdq[edi + edx * 2], xmm4
+		add esi, srcstep
+		add edi, deststep
+		sub ebx, 1
+		jnz yloop
+		yloop_end :
 		pop ebx
-	}
+		}
 }
 
 void ReadTextureMode1(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = halfh * thread_id / thread_num;
 	int y_end = halfh * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
@@ -792,77 +792,77 @@ void ReadTextureMode1(int thread_id, int thread_num, void* param1, void* param2)
 	int destpitch = prm->destpitch;
 	int srcpitch2 = prm->srcpitch2;
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov edx, src2
 		mov eax, destpitch
 		mov ebx, srcpitch2
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm7, i128_pw_16384
 		yloop :
 		mov ecx, xloopcount
 
-			align 16
-			xloop1 :
-			movdqa xmm0, [edx]
-			movdqa xmm1, [edx + 16]
-			movdqa xmm2, [edx + 32]
-			movdqa xmm3, [edx + ebx]
-			movdqa xmm4, [edx + ebx + 16]
-			movdqa xmm5, [edx + ebx + 32]
-			paddw xmm0, xmm7
-			paddw xmm1, xmm7
-			paddw xmm2, xmm7
-			paddw xmm3, xmm7
-			paddw xmm4, xmm7
-			paddw xmm5, xmm7
-			pinsrw xmm0, [esi], 0
-			pinsrw xmm3, [esi + 2], 0
-			pinsrw xmm0, [esi + 4], 3
-			pinsrw xmm3, [esi + 6], 3
-			pinsrw xmm0, [esi + 8], 6
-			pinsrw xmm3, [esi + 10], 6
-			pinsrw xmm1, [esi + 12], 1
-			pinsrw xmm4, [esi + 14], 1
-			pinsrw xmm1, [esi + 16], 4
-			pinsrw xmm4, [esi + 18], 4
-			pinsrw xmm1, [esi + 20], 7
-			pinsrw xmm4, [esi + 22], 7
-			pinsrw xmm2, [esi + 24], 2
-			pinsrw xmm5, [esi + 26], 2
-			pinsrw xmm2, [esi + 28], 5
-			pinsrw xmm5, [esi + 30], 5
-			psubw xmm0, xmm7
-			psubw xmm1, xmm7
-			psubw xmm2, xmm7
-			psubw xmm3, xmm7
-			psubw xmm4, xmm7
-			psubw xmm5, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + 16], xmm1
-			movntdq[edi + 32], xmm2
-			movntdq[edi + eax], xmm3
-			movntdq[edi + eax + 16], xmm4
-			movntdq[edi + eax + 32], xmm5
-			add esi, 32
-			add edx, 48
-			add edi, 48
-			sub ecx, 1
-			jnz xloop1
+		align 16
+		xloop1 :
+		vmovdqa xmm0, [edx]
+		vmovdqa xmm1, [edx + 16]
+		vmovdqa xmm2, [edx + 32]
+		vmovdqa xmm3, [edx + ebx]
+		vmovdqa xmm4, [edx + ebx + 16]
+		vmovdqa xmm5, [edx + ebx + 32]
+		paddw xmm0, xmm7
+		paddw xmm1, xmm7
+		paddw xmm2, xmm7
+		paddw xmm3, xmm7
+		paddw xmm4, xmm7
+		paddw xmm5, xmm7
+		pinsrw xmm0, [esi], 0
+		pinsrw xmm3, [esi + 2], 0
+		pinsrw xmm0, [esi + 4], 3
+		pinsrw xmm3, [esi + 6], 3
+		pinsrw xmm0, [esi + 8], 6
+		pinsrw xmm3, [esi + 10], 6
+		pinsrw xmm1, [esi + 12], 1
+		pinsrw xmm4, [esi + 14], 1
+		pinsrw xmm1, [esi + 16], 4
+		pinsrw xmm4, [esi + 18], 4
+		pinsrw xmm1, [esi + 20], 7
+		pinsrw xmm4, [esi + 22], 7
+		pinsrw xmm2, [esi + 24], 2
+		pinsrw xmm5, [esi + 26], 2
+		pinsrw xmm2, [esi + 28], 5
+		pinsrw xmm5, [esi + 30], 5
+		psubw xmm0, xmm7
+		psubw xmm1, xmm7
+		psubw xmm2, xmm7
+		psubw xmm3, xmm7
+		psubw xmm4, xmm7
+		psubw xmm5, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + 16], xmm1
+		movntdq[edi + 32], xmm2
+		movntdq[edi + eax], xmm3
+		movntdq[edi + eax + 16], xmm4
+		movntdq[edi + eax + 32], xmm5
+		add esi, 32
+		add edx, 48
+		add edi, 48
+		sub ecx, 1
+		jnz xloop1
 
-			add esi, srcstep
-			add edx, srcstep2
-			add edi, deststep
-			sub yloopcount, 1
-			jnz yloop
-			pop ebx
-	}
+		add esi, srcstep
+		add edx, srcstep2
+		add edi, deststep
+		sub yloopcount, 1
+		jnz yloop
+		pop ebx
+		}
 }
 
 void ReadTextureMode2(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = halfh * thread_id / thread_num;
 	int y_end = halfh * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
@@ -876,109 +876,109 @@ void ReadTextureMode2(int thread_id, int thread_num, void* param1, void* param2)
 	int span = halfw * 8;
 
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov edx, src2
 		mov eax, span
 		mov ebx, yloopcount
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm7, i128_pw_16384
 		yloop :
 		mov ecx, xloopcount
-			align 16
-			xloop1 :
-			pinsrw xmm0, [esi], 1
-			pinsrw xmm0, [esi + 4], 4
-			pinsrw xmm0, [esi + 8], 7
-			pinsrw xmm1, [esi + 12], 2
-			pinsrw xmm1, [esi + 16], 5
-			pinsrw xmm2, [esi + 20], 0
-			pinsrw xmm2, [esi + 24], 3
-			pinsrw xmm2, [esi + 28], 6
-			pinsrw xmm0, [esi + eax], 2
-			pinsrw xmm0, [esi + eax + 4], 5
-			pinsrw xmm1, [esi + eax + 8], 0
-			pinsrw xmm1, [esi + eax + 12], 3
-			pinsrw xmm1, [esi + eax + 16], 6
-			pinsrw xmm2, [esi + eax + 20], 1
-			pinsrw xmm2, [esi + eax + 24], 4
-			pinsrw xmm2, [esi + eax + 28], 7
-			psubw xmm0, xmm7
-			psubw xmm1, xmm7
-			psubw xmm2, xmm7
-			pinsrw xmm0, [edx], 0
-			pinsrw xmm0, [edx + 6], 3
-			pinsrw xmm0, [edx + 12], 6
-			pinsrw xmm1, [edx + 18], 1
-			pinsrw xmm1, [edx + 24], 4
-			pinsrw xmm1, [edx + 30], 7
-			pinsrw xmm2, [edx + 36], 2
-			pinsrw xmm2, [edx + 42], 5
-			movntdq[edi], xmm0
-			movntdq[edi + 16], xmm1
-			movntdq[edi + 32], xmm2
-			add esi, 32
-			add edx, 48
-			add edi, 48
-			sub ecx, 1
-			jnz xloop1
+		align 16
+		xloop1 :
+		pinsrw xmm0, [esi], 1
+		pinsrw xmm0, [esi + 4], 4
+		pinsrw xmm0, [esi + 8], 7
+		pinsrw xmm1, [esi + 12], 2
+		pinsrw xmm1, [esi + 16], 5
+		pinsrw xmm2, [esi + 20], 0
+		pinsrw xmm2, [esi + 24], 3
+		pinsrw xmm2, [esi + 28], 6
+		pinsrw xmm0, [esi + eax], 2
+		pinsrw xmm0, [esi + eax + 4], 5
+		pinsrw xmm1, [esi + eax + 8], 0
+		pinsrw xmm1, [esi + eax + 12], 3
+		pinsrw xmm1, [esi + eax + 16], 6
+		pinsrw xmm2, [esi + eax + 20], 1
+		pinsrw xmm2, [esi + eax + 24], 4
+		pinsrw xmm2, [esi + eax + 28], 7
+		psubw xmm0, xmm7
+		psubw xmm1, xmm7
+		psubw xmm2, xmm7
+		pinsrw xmm0, [edx], 0
+		pinsrw xmm0, [edx + 6], 3
+		pinsrw xmm0, [edx + 12], 6
+		pinsrw xmm1, [edx + 18], 1
+		pinsrw xmm1, [edx + 24], 4
+		pinsrw xmm1, [edx + 30], 7
+		pinsrw xmm2, [edx + 36], 2
+		pinsrw xmm2, [edx + 42], 5
+		movntdq[edi], xmm0
+		movntdq[edi + 16], xmm1
+		movntdq[edi + 32], xmm2
+		add esi, 32
+		add edx, 48
+		add edi, 48
+		sub ecx, 1
+		jnz xloop1
 
-			mov esi, src
-			add edx, srcstep2
-			add edi, deststep
-			mov ecx, xloopcount
-			align 16
-			xloop2:
+		mov esi, src
+		add edx, srcstep2
+		add edi, deststep
+		mov ecx, xloopcount
+		align 16
+		xloop2:
 		pinsrw xmm0, [esi + 2], 1
-			pinsrw xmm0, [esi + 6], 4
-			pinsrw xmm0, [esi + 10], 7
-			pinsrw xmm1, [esi + 14], 2
-			pinsrw xmm1, [esi + 18], 5
-			pinsrw xmm2, [esi + 22], 0
-			pinsrw xmm2, [esi + 26], 3
-			pinsrw xmm2, [esi + 30], 6
-			pinsrw xmm0, [esi + eax + 2], 2
-			pinsrw xmm0, [esi + eax + 6], 5
-			pinsrw xmm1, [esi + eax + 10], 0
-			pinsrw xmm1, [esi + eax + 14], 3
-			pinsrw xmm1, [esi + eax + 18], 6
-			pinsrw xmm2, [esi + eax + 22], 1
-			pinsrw xmm2, [esi + eax + 26], 4
-			pinsrw xmm2, [esi + eax + 30], 7
-			psubw xmm0, xmm7
-			psubw xmm1, xmm7
-			psubw xmm2, xmm7
-			pinsrw xmm0, [edx], 0
-			pinsrw xmm0, [edx + 6], 3
-			pinsrw xmm0, [edx + 12], 6
-			pinsrw xmm1, [edx + 18], 1
-			pinsrw xmm1, [edx + 24], 4
-			pinsrw xmm1, [edx + 30], 7
-			pinsrw xmm2, [edx + 36], 2
-			pinsrw xmm2, [edx + 42], 5
-			movntdq[edi], xmm0
-			movntdq[edi + 16], xmm1
-			movntdq[edi + 32], xmm2
-			add esi, 32
-			add edx, 48
-			add edi, 48
-			sub ecx, 1
-			jnz xloop2
+		pinsrw xmm0, [esi + 6], 4
+		pinsrw xmm0, [esi + 10], 7
+		pinsrw xmm1, [esi + 14], 2
+		pinsrw xmm1, [esi + 18], 5
+		pinsrw xmm2, [esi + 22], 0
+		pinsrw xmm2, [esi + 26], 3
+		pinsrw xmm2, [esi + 30], 6
+		pinsrw xmm0, [esi + eax + 2], 2
+		pinsrw xmm0, [esi + eax + 6], 5
+		pinsrw xmm1, [esi + eax + 10], 0
+		pinsrw xmm1, [esi + eax + 14], 3
+		pinsrw xmm1, [esi + eax + 18], 6
+		pinsrw xmm2, [esi + eax + 22], 1
+		pinsrw xmm2, [esi + eax + 26], 4
+		pinsrw xmm2, [esi + eax + 30], 7
+		psubw xmm0, xmm7
+		psubw xmm1, xmm7
+		psubw xmm2, xmm7
+		pinsrw xmm0, [edx], 0
+		pinsrw xmm0, [edx + 6], 3
+		pinsrw xmm0, [edx + 12], 6
+		pinsrw xmm1, [edx + 18], 1
+		pinsrw xmm1, [edx + 24], 4
+		pinsrw xmm1, [edx + 30], 7
+		pinsrw xmm2, [edx + 36], 2
+		pinsrw xmm2, [edx + 42], 5
+		movntdq[edi], xmm0
+		movntdq[edi + 16], xmm1
+		movntdq[edi + 32], xmm2
+		add esi, 32
+		add edx, 48
+		add edi, 48
+		sub ecx, 1
+		jnz xloop2
 
-			add esi, srcstep
-			add edx, srcstep2
-			add edi, deststep
-			mov src, esi
-			sub ebx, 1
-			jnz yloop
-			pop ebx
-	}
+		add esi, srcstep
+		add edx, srcstep2
+		add edi, deststep
+		mov src, esi
+		sub ebx, 1
+		jnz yloop
+		pop ebx
+		}
 }
 
 void ReadTextureMode3(int thread_id, int thread_num, void* param1, void* param2)
 {
-	TexReadWriteParam* prm = (TexReadWriteParam*)param1;
+	auto prm = static_cast<TexReadWriteParam*>(param1);
 	int y_start = halfh * thread_id / thread_num;
 	int y_end = halfh * (thread_id + 1) / thread_num;
 	int yloopcount = y_end - y_start;
@@ -990,108 +990,108 @@ void ReadTextureMode3(int thread_id, int thread_num, void* param1, void* param2)
 	int span = halfw * 8;
 	int span2 = prm->destpitch;
 	__asm
-	{
+		{
 		push ebx
 		mov esi, src
 		mov edi, dest
 		mov eax, span
 		mov edx, span2
 		mov ebx, yloopcount
-		movdqa xmm7, i128_pw_16384
+		vmovdqa xmm7, i128_pw_16384
 		yloop :
 		mov ecx, xloopcount
-			align 16
-			xloop1 :
-			movdqa xmm0, [esi]
-			movdqa xmm1, [esi + 16]
-			movdqa xmm2, [esi + eax]
-			movdqa xmm3, [esi + eax + 16]
-			movdqa xmm4, [esi + eax * 2]
-			movdqa xmm5, [esi + eax * 2 + 16]
-			// 00 08 01 09 02 0A 03 0B
-			// 04 0C 05 0D 06 0E 07 0F
-			// 10 18 11 19 12 1A 13 1B
-			// 14 1C 15 1D 16 1E 17 1F
-			// 20 28 21 29 22 2A 23 2B
-			// 24 2C 25 2D 26 2E 27 2F
-			pshufd xmm0, xmm0, 0x8D //2, 0, 3, 1
-			pshufd xmm1, xmm1, 0x8D
-			pshufd xmm2, xmm2, 0x8D
-			pshufd xmm3, xmm3, 0x8D
-			pshufd xmm4, xmm4, 0x8D
-			pshufd xmm5, xmm5, 0x8D
-			// 01 09 03 0B 00 08 02 0A
-			// 05 0D 07 0F 04 0C 06 0E
-			// 11 19 13 1B 10 18 12 1A
-			// 15 1D 17 1F 14 1C 16 1E
-			// 21 29 23 2B 20 28 22 2A
-			// 25 2D 27 2F 24 2C 26 2E
-			punpcklqdq xmm6, xmm0
-			punpckhwd xmm0, xmm2
-			punpcklwd xmm2, xmm4
-			punpckhwd xmm4, xmm6
-			punpcklqdq xmm6, xmm1
-			punpckhwd xmm1, xmm3
-			punpcklwd xmm3, xmm5
-			punpckhwd xmm5, xmm6
-			// 00 10 08 18 02 12 0A 1A
-			// 11 21 19 29 13 23 1B 2B
-			// 20 01 28 09 22 03 2A 0B
-			// 04 14 0C 1C 06 16 0E 1E
-			// 15 25 1D 2D 17 27 1F 2F
-			// 24 05 2C 0D 26 07 2E 0F
-			pshufd xmm6, xmm0, 0x0E
-			punpckldq xmm0, xmm4
-			punpckhdq xmm4, xmm2
-			punpckldq xmm2, xmm6
-			pshufd xmm6, xmm1, 0x0E
-			punpckldq xmm1, xmm5
-			punpckhdq xmm5, xmm3
-			punpckldq xmm3, xmm6
-			// 00 10 20 01 08 18 28 09
-			// 22 03 13 23 2A 0B 1B 2B
-			// 11 21 02 12 19 29 0A 1A
-			// 04 14 24 05 0C 1C 2C 0D
-			// 26 07 17 27 2E 0F 1F 2F
-			// 15 25 06 16 1D 2D 0E 1E
-			movdqa xmm6, xmm0
-			punpcklqdq xmm0, xmm2
-			punpckhqdq xmm6, xmm2
-			movdqa xmm2, xmm4
-			punpcklqdq xmm4, xmm1
-			punpckhqdq xmm2, xmm1
-			movdqa xmm1, xmm3
-			punpcklqdq xmm3, xmm5
-			punpckhqdq xmm1, xmm5
-			// 00 10 20 01 11 21 02 12
-			// 08 18 28 09 19 29 0A 1A
-			// 22 03 13 23 04 14 24 05
-			// 2A 0B 1B 2B 0C 1C 2C 0D
-			// 15 25 06 16 26 07 17 27
-			// 1D 2D 0E 1E 2E 0F 1F 2F
-			psubw xmm0, xmm7
-			psubw xmm6, xmm7
-			psubw xmm4, xmm7
-			psubw xmm2, xmm7
-			psubw xmm3, xmm7
-			psubw xmm1, xmm7
-			movntdq[edi], xmm0
-			movntdq[edi + 16], xmm4
-			movntdq[edi + 32], xmm3
-			movntdq[edi + edx], xmm6
-			movntdq[edi + edx + 16], xmm2
-			movntdq[edi + edx + 32], xmm1
-			add esi, 32
-			add edi, 48
-			sub ecx, 1
-			jnz xloop1
+		align 16
+		xloop1 :
+		vmovdqa xmm0, [esi]
+		vmovdqa xmm1, [esi + 16]
+		vmovdqa xmm2, [esi + eax]
+		vmovdqa xmm3, [esi + eax + 16]
+		vmovdqa xmm4, [esi + eax * 2]
+		vmovdqa xmm5, [esi + eax * 2 + 16]
+		// 00 08 01 09 02 0A 03 0B
+		// 04 0C 05 0D 06 0E 07 0F
+		// 10 18 11 19 12 1A 13 1B
+		// 14 1C 15 1D 16 1E 17 1F
+		// 20 28 21 29 22 2A 23 2B
+		// 24 2C 25 2D 26 2E 27 2F
+		pshufd xmm0, xmm0, 0x8D //2, 0, 3, 1
+		pshufd xmm1, xmm1, 0x8D
+		pshufd xmm2, xmm2, 0x8D
+		pshufd xmm3, xmm3, 0x8D
+		pshufd xmm4, xmm4, 0x8D
+		pshufd xmm5, xmm5, 0x8D
+		// 01 09 03 0B 00 08 02 0A
+		// 05 0D 07 0F 04 0C 06 0E
+		// 11 19 13 1B 10 18 12 1A
+		// 15 1D 17 1F 14 1C 16 1E
+		// 21 29 23 2B 20 28 22 2A
+		// 25 2D 27 2F 24 2C 26 2E
+		punpcklqdq xmm6, xmm0
+		punpckhwd xmm0, xmm2
+		punpcklwd xmm2, xmm4
+		punpckhwd xmm4, xmm6
+		punpcklqdq xmm6, xmm1
+		punpckhwd xmm1, xmm3
+		punpcklwd xmm3, xmm5
+		punpckhwd xmm5, xmm6
+		// 00 10 08 18 02 12 0A 1A
+		// 11 21 19 29 13 23 1B 2B
+		// 20 01 28 09 22 03 2A 0B
+		// 04 14 0C 1C 06 16 0E 1E
+		// 15 25 1D 2D 17 27 1F 2F
+		// 24 05 2C 0D 26 07 2E 0F
+		pshufd xmm6, xmm0, 0x0E
+		punpckldq xmm0, xmm4
+		punpckhdq xmm4, xmm2
+		punpckldq xmm2, xmm6
+		pshufd xmm6, xmm1, 0x0E
+		punpckldq xmm1, xmm5
+		punpckhdq xmm5, xmm3
+		punpckldq xmm3, xmm6
+		// 00 10 20 01 08 18 28 09
+		// 22 03 13 23 2A 0B 1B 2B
+		// 11 21 02 12 19 29 0A 1A
+		// 04 14 24 05 0C 1C 2C 0D
+		// 26 07 17 27 2E 0F 1F 2F
+		// 15 25 06 16 1D 2D 0E 1E
+		vmovdqa xmm6, xmm0
+		punpcklqdq xmm0, xmm2
+		punpckhqdq xmm6, xmm2
+		vmovdqa xmm2, xmm4
+		punpcklqdq xmm4, xmm1
+		punpckhqdq xmm2, xmm1
+		vmovdqa xmm1, xmm3
+		punpcklqdq xmm3, xmm5
+		punpckhqdq xmm1, xmm5
+		// 00 10 20 01 11 21 02 12
+		// 08 18 28 09 19 29 0A 1A
+		// 22 03 13 23 04 14 24 05
+		// 2A 0B 1B 2B 0C 1C 2C 0D
+		// 15 25 06 16 26 07 17 27
+		// 1D 2D 0E 1E 2E 0F 1F 2F
+		psubw xmm0, xmm7
+		psubw xmm6, xmm7
+		psubw xmm4, xmm7
+		psubw xmm2, xmm7
+		psubw xmm3, xmm7
+		psubw xmm1, xmm7
+		movntdq[edi], xmm0
+		movntdq[edi + 16], xmm4
+		movntdq[edi + 32], xmm3
+		movntdq[edi + edx], xmm6
+		movntdq[edi + edx + 16], xmm2
+		movntdq[edi + edx + 32], xmm1
+		add esi, 32
+		add edi, 48
+		sub ecx, 1
+		jnz xloop1
 
-			add esi, srcstep
-			add edi, deststep
-			sub ebx, 1
-			jnz yloop
-			pop ebx
-	}
+		add esi, srcstep
+		add edi, deststep
+		sub ebx, 1
+		jnz yloop
+		pop ebx
+		}
 }
 
 IDirect3DTexture9* GetSrcTexture(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
@@ -1113,16 +1113,16 @@ IDirect3DTexture9* GetSrcTexture(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIn
 	{
 		tex = SrcSysTexture;
 	}
-	D3DLOCKED_RECT lockedRect = { 0 };
+	D3DLOCKED_RECT lockedRect = {0};
 	if (FAILED(tex->LockRect(0, &lockedRect, NULL, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK)))
 	{
 		ShowErrorMsg("LockRectに失敗");
 		return nullptr;
 	}
 	TexReadWriteParam param;
-	param.src = (short*)(fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, frameIndex, nullptr, nullptr));
-	param.dest = (short*)lockedRect.pBits;
-	param.srcpitch = ((srcWidth + 7) & ~7) * 6;
+	param.src = (short*)fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, frameIndex, nullptr, nullptr);
+	param.dest = static_cast<short*>(lockedRect.pBits);
+	param.srcpitch = (srcWidth + 7 & ~7) * 6;
 	param.destpitch = lockedRect.Pitch;
 	param.width = srcWidth;
 	param.height = srcHeight;
@@ -1132,13 +1132,13 @@ IDirect3DTexture9* GetSrcTexture(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIn
 	switch (mode)
 	{
 	case 1:
-		fp->exfunc->exec_multi_thread_func(WriteTextureMode1, (void*)&param, nullptr);
+		fp->exfunc->exec_multi_thread_func(WriteTextureMode1, static_cast<void*>(&param), nullptr);
 		break;
 	case 2:
-		fp->exfunc->exec_multi_thread_func(WriteTextureMode2, (void*)&param, nullptr);
+		fp->exfunc->exec_multi_thread_func(WriteTextureMode2, static_cast<void*>(&param), nullptr);
 		break;
 	case 3:
-		fp->exfunc->exec_multi_thread_func(WriteTextureMode3, (void*)&param, nullptr);
+		fp->exfunc->exec_multi_thread_func(WriteTextureMode3, static_cast<void*>(&param), nullptr);
 		break;
 	}
 
@@ -1174,22 +1174,19 @@ IDirect3DPixelShader9* GetPixelShader(int spaceRadius, int timeRadius, HMODULE h
 	IDirect3DPixelShader9* pixelShader;
 	char resourcename[10];
 	if (spaceRadius & 1)
-		sprintf_s(resourcename, sizeof(resourcename), "ODD_T%d", timeRadius);
+		sprintf_s(resourcename, sizeof resourcename, "ODD_T%d", timeRadius);
 	else
-		sprintf_s(resourcename, sizeof(resourcename), "EVEN_T%d", timeRadius);
-	HRSRC hRsrc;
-	HANDLE hRes;
-	void* lpPS;
-	hRsrc = FindResource(hModule, resourcename, "PIXELSHADER");
+		sprintf_s(resourcename, sizeof resourcename, "EVEN_T%d", timeRadius);
+	HRSRC hRsrc = FindResource(hModule, resourcename, "PIXELSHADER");
 	if (hRsrc != nullptr)
 	{
-		hRes = LoadResource(hModule, hRsrc);
+		HANDLE hRes = LoadResource(hModule, hRsrc);
 		if (hRes != nullptr)
 		{
-			lpPS = LockResource(hRes);
+			void* lpPS = LockResource(hRes);
 			if (lpPS != nullptr)
 			{
-				if (device->CreatePixelShader((DWORD*)lpPS, &pixelShader) == D3D_OK)
+				if (device->CreatePixelShader(static_cast<DWORD*>(lpPS), &pixelShader) == D3D_OK)
 				{
 					ps[spaceRadius & 1][timeRadius] = pixelShader;
 					return pixelShader;
@@ -1203,7 +1200,7 @@ IDirect3DPixelShader9* GetPixelShader(int spaceRadius, int timeRadius, HMODULE h
 
 bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 {
-	int count = max(fp->track[1], fp->track[4]) * 2 + 1;
+	const int count = max(fp->track[1], fp->track[4]) * 2 + 1;
 	if (count != maxCacheCount)
 	{
 		ClearCache(count);
@@ -1233,9 +1230,9 @@ bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 		range = lumaRadius * 2 + 1;
 		range2 = lumaRadius;
 		device->SetPixelShader(GetPixelShader(lumaRadius, timeRadius, fp->dll_hinst));
-		pscf[13].x = (float)(lumaRadius / 2);
-		pscf[13].y = (float)lumaRadius;
-		pscf[14].x = (float)lumaH2;
+		pscf[13].x = static_cast<float>(lumaRadius / 2);
+		pscf[13].y = static_cast<float>(lumaRadius);
+		pscf[14].x = lumaH2;
 		pscf[15].x = 4;
 		psci[0].x = range;
 		psci[1].x = range2;
@@ -1254,9 +1251,9 @@ bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 		range = chromaRadius * 2 + 1;
 		range2 = chromaRadius;
 		device->SetPixelShader(GetPixelShader(chromaRadius, timeRadius, fp->dll_hinst));
-		pscf[13].x = (float)(chromaRadius / 2);
-		pscf[13].y = (float)chromaRadius;
-		pscf[14].x = (float)chromaH2;
+		pscf[13].x = static_cast<float>(chromaRadius / 2);
+		pscf[13].y = static_cast<float>(chromaRadius);
+		pscf[14].x = chromaH2;
 		pscf[15].x = 4;
 		psci[0].x = range;
 		psci[1].x = range2;
@@ -1277,9 +1274,9 @@ bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 		range = lumaRadius * 2 + 1;
 		range2 = lumaRadius;
 		device->SetPixelShader(GetPixelShader(lumaRadius, timeRadius, fp->dll_hinst));
-		pscf[13].x = (float)(lumaRadius / 2);
-		pscf[13].y = (float)lumaRadius;
-		pscf[14].x = (float)lumaH2;
+		pscf[13].x = static_cast<float>(lumaRadius / 2);
+		pscf[13].y = static_cast<float>(lumaRadius);
+		pscf[14].x = lumaH2;
 		pscf[15].x = 4;
 		psci[0].x = range;
 		psci[1].x = range2;
@@ -1296,9 +1293,9 @@ bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 		range = chromaRadius * 2 + 1;
 		range2 = chromaRadius;
 		device->SetPixelShader(GetPixelShader(chromaRadius, timeRadius, fp->dll_hinst));
-		pscf[13].x = (float)(chromaRadius / 2);
-		pscf[13].y = (float)chromaRadius;
-		pscf[14].x = (float)chromaH2;
+		pscf[13].x = static_cast<float>(chromaRadius / 2);
+		pscf[13].y = static_cast<float>(chromaRadius);
+		pscf[14].x = chromaH2;
 		pscf[15].x = 12;
 		psci[0].x = range;
 		psci[1].x = range2;
@@ -1323,12 +1320,12 @@ bool Render(FILTER* fp, FILTER_PROC_INFO* fpip, int frameIndex)
 
 void copyframe(FILTER* fp, FILTER_PROC_INFO* fpip)
 {
-	BYTE* dest = (BYTE*)fpip->ycp_edit;
-	BYTE* src = (BYTE*)(fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, fpip->frame, nullptr, nullptr));
-	int w = fpip->w;
-	int h = fpip->h;
-	int destbpl = fpip->max_w * 6;
-	int srcbpl = ((w + 7) & ~7) * 6;
+	auto dest = (BYTE*)fpip->ycp_edit;
+	auto src = (BYTE*)fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, fpip->frame, nullptr, nullptr);
+	const int w = fpip->w;
+	const int h = fpip->h;
+	const int destbpl = fpip->max_w * 6;
+	const int srcbpl = (w + 7 & ~7) * 6;
 	for (int y = 0; y < h; y++)
 	{
 		memcpy(dest, src, w * 6);
@@ -1352,7 +1349,7 @@ void releaseWaveletWork()
 
 void check_threadcount(int thread_id, int thread_num, void* param1, void* param2)
 {
-	if (thread_id == 0) *(int*)param1 = thread_num;
+	if (thread_id == 0) *static_cast<int*>(param1) = thread_num;
 }
 
 BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
@@ -1384,11 +1381,11 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 	int count = timeRadius * 2 + 1;
 	if (clearAviUtlCache || fpip->frame_n != frameCount)
 	{
-		fp->exfunc->set_ycp_filtering_cache_size(fp, (width + 7) & ~7, (height + 1) & ~1, 0, NULL);
+		fp->exfunc->set_ycp_filtering_cache_size(fp, width + 7 & ~7, height + 1 & ~1, 0, NULL);
 		clearAviUtlCache = FALSE;
 		frameCount = fpip->frame_n;
 	}
-	fp->exfunc->set_ycp_filtering_cache_size(fp, (width + 7) & ~7, (height + 1) & ~1, count + 1, NULL);
+	fp->exfunc->set_ycp_filtering_cache_size(fp, width + 7 & ~7, height + 1 & ~1, count + 1, NULL);
 
 	if (mode == 0 || skipfilter == TRUE)
 	{
@@ -1419,7 +1416,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 		resetflag = 1;
 	}
 
-	if (needCacheClear != FALSE || (prerenderingFrameIndex != frameIndex && prerenderingFrameIndex != -1))
+	if (needCacheClear != FALSE || prerenderingFrameIndex != frameIndex && prerenderingFrameIndex != -1)
 	{
 		needCacheClear = FALSE;
 		prerenderingFrameIndex = -1;
@@ -1448,8 +1445,8 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 	TexReadWriteParam prm;
 	if (fp->track[7] != 0 || mode != 3)
 	{
-		prm.src2 = (short*)(fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, frameIndex, nullptr, nullptr));
-		prm.srcpitch2 = ((srcWidth + 7) & ~7) * 6;
+		prm.src2 = (short*)fp->exfunc->get_ycp_filtering_cache_ex(fp, fpip->editp, frameIndex, nullptr, nullptr);
+		prm.srcpitch2 = (srcWidth + 7 & ~7) * 6;
 	}
 	if (fp->track[7] != 0)
 	{
@@ -1467,33 +1464,33 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 			releaseWaveletWork();
 			before.srcwidth = srcWidth;
 			before.srcheight = srcHeight;
-			before.destwidth = ((srcWidth + 15) & ~15) / 2;
-			before.destheight = ((srcHeight + 15) & ~15) / 2;
+			before.destwidth = (srcWidth + 15 & ~15) / 2;
+			before.destheight = (srcHeight + 15 & ~15) / 2;
 			before.src_bpl = prm.srcpitch2;
-			before.dest_bpl = (before.destwidth * 12 + 63) & ~63;
+			before.dest_bpl = before.destwidth * 12 + 63 & ~63;
 			if ((before.dest_bpl & 4095) == 0) before.dest_bpl += 64;
 
 			after.srcwidth = srcWidth;
 			after.srcheight = srcHeight;
-			after.destwidth = (srcWidth + 15) & ~15;
-			after.destheight = (srcHeight + 15) & ~15;
+			after.destwidth = srcWidth + 15 & ~15;
+			after.destheight = srcHeight + 15 & ~15;
 			after.src_bpl = fpip->max_w * 6;
 			after.dest_bpl = after.destwidth * 12;
 			if ((after.dest_bpl & 4095) == 0) after.dest_bpl += 64;
 
-			before.dest = (BYTE*)_mm_malloc(before.dest_bpl * before.destheight, 64);
-			after.dest = (BYTE*)_mm_malloc(after.dest_bpl * after.destheight, 64);
+			before.dest = static_cast<BYTE*>(_mm_malloc(before.dest_bpl * before.destheight, 64));
+			after.dest = static_cast<BYTE*>(_mm_malloc(after.dest_bpl * after.destheight, 64));
 		}
 
 		if (work == nullptr)
 		{
-			int xworksize = (((((before.destwidth + 15) & ~15) + 1) * 48 + 63) & ~63) * 2;
+			int xworksize = (((before.destwidth + 15 & ~15) + 1) * 48 + 63 & ~63) * 2;
 			worksize = 64 * 12 + xworksize;
-			work = (BYTE*)_mm_malloc(worksize * maxthread, 64);
+			work = static_cast<BYTE*>(_mm_malloc(worksize * maxthread, 64));
 		}
 		before.src = (BYTE*)prm.src2;
 		before.atomic_counter = 0;
-		fp->exfunc->exec_multi_thread_func(fwt53_LL, (void*)&before, nullptr);
+		fp->exfunc->exec_multi_thread_func(fwt53_LL, static_cast<void*>(&before), nullptr);
 	}
 	IDirect3DSurface9* src;
 	IDirect3DSurface9* dest;
@@ -1502,14 +1499,14 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 	device->GetRenderTargetData(src, dest);
 	SAFE_RELEASE(src);
 	SAFE_RELEASE(dest);
-	D3DLOCKED_RECT lockedRect = { 0 };
+	D3DLOCKED_RECT lockedRect = {0};
 	if (FAILED(DestSysTexture->LockRect(0, &lockedRect, NULL, D3DLOCK_READONLY)))
 	{
 		FinalizeD3D();
 		ShowErrorMsg("LockRectに失敗");
 		return FALSE;
 	}
-	prm.src = (short*)lockedRect.pBits;
+	prm.src = static_cast<short*>(lockedRect.pBits);
 	prm.dest = (short*)fpip->ycp_edit;
 	prm.srcpitch = lockedRect.Pitch;
 	prm.destpitch = fpip->max_w * 6;
@@ -1519,13 +1516,13 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 	switch (mode)
 	{
 	case 1:
-		fp->exfunc->exec_multi_thread_func(ReadTextureMode1, (void*)&prm, nullptr);
+		fp->exfunc->exec_multi_thread_func(ReadTextureMode1, static_cast<void*>(&prm), nullptr);
 		break;
 	case 2:
-		fp->exfunc->exec_multi_thread_func(ReadTextureMode2, (void*)&prm, nullptr);
+		fp->exfunc->exec_multi_thread_func(ReadTextureMode2, static_cast<void*>(&prm), nullptr);
 		break;
 	case 3:
-		fp->exfunc->exec_multi_thread_func(ReadTextureMode3, (void*)&prm, nullptr);
+		fp->exfunc->exec_multi_thread_func(ReadTextureMode3, static_cast<void*>(&prm), nullptr);
 		break;
 	}
 	if (FAILED(DestSysTexture->UnlockRect(0)))
@@ -1554,7 +1551,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 	{
 		after.src = (BYTE*)fpip->ycp_edit;
 		after.atomic_counter = 0;
-		fp->exfunc->exec_multi_thread_func(fwt53, (void*)&after, nullptr);
+		fp->exfunc->exec_multi_thread_func(fwt53, static_cast<void*>(&after), nullptr);
 		BLEND_PARAM blend;
 		blend.src = before.dest;
 		blend.dest = after.dest;
@@ -1562,7 +1559,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 		blend.height = before.destheight;
 		blend.src_bpl = before.dest_bpl;
 		blend.dest_bpl = after.dest_bpl;
-		blend.str = (float)fp->track[7];
+		blend.str = static_cast<float>(fp->track[7]);
 		fp->exfunc->exec_multi_thread_func(blend_lo, &blend, nullptr);
 
 		WAVELET_PARAM iwt;
@@ -1575,7 +1572,7 @@ BOOL func_proc(FILTER* fp, FILTER_PROC_INFO* fpip)
 		iwt.src_bpl = after.dest_bpl;
 		iwt.dest_bpl = fpip->max_w * 6;
 		iwt.atomic_counter = 0;
-		fp->exfunc->exec_multi_thread_func(iwt53, (void*)&iwt, nullptr);
+		fp->exfunc->exec_multi_thread_func(iwt53, static_cast<void*>(&iwt), nullptr);
 	}
 	return TRUE;
 }
@@ -1588,10 +1585,10 @@ BOOL func_exit(FILTER* fp)
 
 BOOL func_update(FILTER* fp, int status)
 {
-	double H = pow((double)fp->track[2] / 100, 2) * 40;
-	lumaH2 = (float)(1.0 / (H * H));
-	H = pow((double)fp->track[5] / 100, 2) * 40;
-	chromaH2 = (float)(1.0 / (H * H));
+	double H = pow(static_cast<double>(fp->track[2]) / 100, 2) * 40;
+	lumaH2 = static_cast<float>(1.0 / (H * H));
+	H = pow(static_cast<double>(fp->track[5]) / 100, 2) * 40;
+	chromaH2 = static_cast<float>(1.0 / (H * H));
 	D3DADAPTER_IDENTIFIER9 ai;
 	if (direct3D == nullptr)
 	{
@@ -1602,7 +1599,7 @@ BOOL func_update(FILTER* fp, int status)
 	}
 	direct3D->GetAdapterIdentifier(adapter_id, 0, &ai);
 	char buf[512];
-	sprintf_s(buf, sizeof(buf), "nlmeans [%s]", ai.Description);
+	sprintf_s(buf, sizeof buf, "nlmeans [%s]", ai.Description);
 	SetWindowText(fp->hwnd, buf);
 	if (adapter != adapter_id)
 	{
