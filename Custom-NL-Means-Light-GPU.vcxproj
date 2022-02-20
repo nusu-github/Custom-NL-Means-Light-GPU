@@ -126,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
+    <None Include=".github\workflows\msbuild.yml" />
     <None Include=".gitignore" />
     <None Include="Custom-NL-Means-Light-GPU.def" />
     <None Include="hlsl_build.bat" />
