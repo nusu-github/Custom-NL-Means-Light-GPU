@@ -5,7 +5,6 @@ Nilpo氏のNL-Means_Light_GPUプラグインの改造版
 ## 動作条件
 
 - Windows10 以上
-- AVX2対応 CPU
 - DirectX12対応 GPU
 - Aviutl 1.10
 - [DirectX End-User Runtimes](https://www.microsoft.com/ja-jp/download/details.aspx?id=35)(多分)
@@ -32,10 +31,6 @@ Nilpo氏のNL-Means_Light_GPUプラグインの改造版
 - 多少処理速度に差があるかも(どちらが速いかは環境による)
 
 色差空間と色差時間を0にすると色差成分の処理をスキップするので高速になります。
-
-なお、今まであったアダプター機能は機能していないと思われるので外しました。
-
-今後使用したいGPUを変更する場合はWindowsの標準機能を使用してください。
 
 ## 改造点
 

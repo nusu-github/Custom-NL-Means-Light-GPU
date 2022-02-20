@@ -10,14 +10,14 @@
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 #endif
 
-#define TRACK_N    7                                    //    トラックバーの数
-TCHAR* track_name[TRACK_N] = {"輝度空間", "輝度時間", "輝度分散", "色差空間", "色差時間", "色差分散", "保護"}; //    トラックバーの名前
-int track_default[TRACK_N] = {1, 0, 40, 1, 0, 40, 100}; //    トラックバーの初期値
-int track_s[TRACK_N] = {0, 0, 1, 0, 0, 1, 0}; //    トラックバーの下限値
-int track_e[TRACK_N] = {5, 3, 100, 5, 3, 100, 100}; //    トラックバーの上限値
+#define TRACK_N    8                                    //    トラックバーの数
+TCHAR* track_name[] = {"輝度空間", "輝度時間", "輝度分散", "色差空間", "色差時間", "色差分散", "アダプタ", "保護"}; //    トラックバーの名前
+int track_default[] = {1, 0, 40, 1, 0, 40, 0, 100}; //    トラックバーの初期値
+int track_s[] = {0, 0, 1, 0, 0, 1, 0, 0}; //    トラックバーの下限値
+int track_e[] = {5, 3, 100, 5, 3, 100, 0, 100}; //    トラックバーの上限値
 #define CHECK_N 1
-TCHAR* check_name[CHECK_N] = {"Use UpdateSurface"};
-int check_default[CHECK_N] = {1};
+TCHAR* check_name[] = {"Use UpdateSurface"};
+int check_default[] = {1};
 
 FILTER_DLL filter = {
 	FILTER_FLAG_EX_INFORMATION | FILTER_FLAG_NO_INIT_DATA, //    フィルタのフラグ
@@ -114,8 +114,6 @@ BYTE* work;
 int worksize;
 float str;
 
-UINT adapter_id;
-
 static const __m256i i128_pw_2048 = _mm256_set1_epi16(2048);
 static const __m256i i128_pw_4096 = _mm256_set1_epi16(4096);
 static const __m256i i128_CbCr_rev1 = _mm256_set_epi32(0, 4096, 0, 0, 4096, 0, 0, 4096);
@@ -129,12 +127,12 @@ static const __m256i i128_pw_4 = _mm256_set1_epi16(4);
 //---------------------------------------------------------------------
 EXTERN_C FILTER_DLL __declspec(dllexport)* __stdcall GetFilterTable(void)
 {
-	D3D9ON12_ARGS d3d9on12Args{};
-	d3d9on12Args.Enable9On12 = true;
-	Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9on12Args, 1, &direct3D);
+	D3D9ON12_ARGS d3d9_on12_args{};
+	d3d9_on12_args.Enable9On12 = true;
+	Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9_on12_args, 1, &direct3D);
 	if (direct3D != nullptr)
 	{
-		adapter_id = direct3D->GetAdapterCount() - 1;
+		track_e[6] = direct3D->GetAdapterCount() - 1;
 	}
 	return &filter;
 }
@@ -178,13 +176,13 @@ BOOL skipfilter = FALSE;
 
 bool InitD3D(HWND hwnd, HMODULE hModule)
 {
-	D3D9ON12_ARGS d3d9on12Args{};
-	d3d9on12Args.Enable9On12 = true;
+	D3D9ON12_ARGS d3d9_on12_args{};
+	d3d9_on12_args.Enable9On12 = true;
 	while (TRUE)
 	{
 		if (direct3D == nullptr)
 		{
-			Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9on12Args, 1, &direct3D);
+			Direct3DCreate9On12Ex(D3D_SDK_VERSION, &d3d9_on12_args, 1, &direct3D);
 			if (direct3D == nullptr)
 			{
 				ShowErrorMsg("Direct3DCreate9に失敗");
@@ -198,7 +196,7 @@ bool InitD3D(HWND hwnd, HMODULE hModule)
 		presentParameters.MultiSampleType = D3DMULTISAMPLE_NONE;
 
 		if (FAILED(
-			direct3D->CreateDeviceEx(adapter_id, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING |
+			direct3D->CreateDeviceEx(adapter, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING |
 				D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &presentParameters, nullptr, &device)))
 		{
 			if (MessageBox(nullptr, "CreateDeviceに失敗", "Custom NL-Means-Light", MB_RETRYCANCEL | MB_ICONWARNING) ==
@@ -1597,11 +1595,11 @@ BOOL func_update(FILTER* fp, int status)
 			return FALSE;
 		}
 	}
-	direct3D->GetAdapterIdentifier(adapter_id, 0, &ai);
+	direct3D->GetAdapterIdentifier(fp->track[6], 0, &ai);
 	char buf[512];
 	sprintf_s(buf, sizeof buf, "nlmeans [%s]", ai.Description);
 	SetWindowText(fp->hwnd, buf);
-	if (adapter != adapter_id)
+	if (adapter != fp->track[6])
 	{
 		prerenderingFrameIndex = -1;
 		FinalizeD3D();
