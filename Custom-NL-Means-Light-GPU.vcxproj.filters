@@ -35,6 +35,7 @@
     <None Include=".gitignore" />
     <None Include="README.md" />
     <None Include=".github\workflows\msbuild.yml" />
+    <None Include="Q&amp;A.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nlmeans.rc">

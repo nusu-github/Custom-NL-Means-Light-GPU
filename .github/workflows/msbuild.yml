@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Custom-NL-Means-Light-GPU_Release
-          path: Custom-NL-Means-Light-GPU\Release\Custom-NL-Means-Light-GPU.auf
+          path: Release
 
   Debug_build:
     runs-on: windows-latest
@@ -52,4 +52,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Custom-NL-Means-Light-GPU_Debug
-          path: Custom-NL-Means-Light-GPU\Debug\Custom-NL-Means-Light-GPU.auf
+          path: Debug

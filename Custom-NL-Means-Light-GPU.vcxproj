@@ -134,6 +134,7 @@ start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foodd_t3.pso nlmeans_odd_t.hls
     <None Include=".github\workflows\msbuild.yml" />
     <None Include=".gitignore" />
     <None Include="Custom-NL-Means-Light-GPU.def" />
+    <None Include="Q&amp;A.md" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
