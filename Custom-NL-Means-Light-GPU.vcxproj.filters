@@ -31,7 +31,6 @@
     <None Include="Custom-NL-Means-Light-GPU.def">
       <Filter>ソース ファイル</Filter>
     </None>
-    <None Include="hlsl_build.bat" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="README.md" />

@@ -114,13 +114,13 @@ BYTE* work;
 int worksize;
 float str;
 
-static const __m256i i128_pw_2048 = _mm256_set1_epi16(2048);
-static const __m256i i128_pw_4096 = _mm256_set1_epi16(4096);
-static const __m256i i128_CbCr_rev1 = _mm256_set_epi32(0, 4096, 0, 0, 4096, 0, 0, 4096);
-static const __m256i i128_CbCr_rev2 = _mm256_set_epi32(4096, 0, 0, 4096, 0, 0, 4096, 0);
-static const __m256i i128_CbCr_rev3 = _mm256_set_epi32(0, 0, 4096, 0, 0, 4096, 0, 0);
-static const __m256i i128_pw_16384 = _mm256_set1_epi16(16384);
-static const __m256i i128_pw_4 = _mm256_set1_epi16(4);
+static const __m128i i128_pw_2048 = _mm_set1_epi16(2048);
+static const __m128i i128_pw_4096 = _mm_set1_epi16(4096);
+static const __m128i i128_CbCr_rev1 = _mm_set_epi16(0, 4096, 0, 0, 4096, 0, 0, 4096);
+static const __m128i i128_CbCr_rev2 = _mm_set_epi16(4096, 0, 0, 4096, 0, 0, 4096, 0);
+static const __m128i i128_CbCr_rev3 = _mm_set_epi16(0, 0, 4096, 0, 0, 4096, 0, 0);
+static const __m128i i128_pw_16384 = _mm_set1_epi16(16384);
+static const __m128i i128_pw_4 = _mm_set1_epi16(4);
 
 //---------------------------------------------------------------------
 //        フィルタ構造体のポインタを渡す関数

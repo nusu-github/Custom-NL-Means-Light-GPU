@@ -20,17 +20,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -47,75 +43,84 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <TargetExt>.auf</TargetExt>
-    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <TargetExt>.auf</TargetExt>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
-    <VcpkgAutoLink>false</VcpkgAutoLink>
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
-      <AdditionalOptions>-fasm-blocks %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level4</WarningLevel>
+      <CallingConvention>StdCall</CallingConvention>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <SDLCheck>true</SDLCheck>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
-      <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest />
     <ResourceCompile />
-    <PreBuildEvent>
-      <Command>.\hlsl_build.bat
-</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
     <ResourceCompile />
+    <CustomBuildStep>
+      <Message>hlsl build</Message>
+      <Outputs>even_t0.pso;even_t1.pso;even_t2.pso;even_t3.pso;odd_t0.pso;odd_t1.pso;odd_t2.pso;odd_t3.pso</Outputs>
+      <Command>start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=0 /Foeven_t0.pso nlmeans_even.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=1 /Foeven_t1.pso nlmeans_even_t.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=2 /Foeven_t2.pso nlmeans_even_t.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foeven_t3.pso nlmeans_even_t.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=0 /Foodd_t0.pso nlmeans_odd.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=1 /Foodd_t1.pso nlmeans_odd_t.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=2 /Foodd_t2.pso nlmeans_odd_t.hlsl
+start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foodd_t3.pso nlmeans_odd_t.hlsl</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
-      <AdditionalOptions>-fasm-blocks %(AdditionalOptions)</AdditionalOptions>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level4</WarningLevel>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <SDLCheck>true</SDLCheck>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <IntelJCCErratum>true</IntelJCCErratum>
+      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
-      <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <Manifest />
     <ResourceCompile />
-    <PreBuildEvent>
-      <Command>.\hlsl_build.bat
-</Command>
-    </PreBuildEvent>
+    <PreBuildEvent />
     <ResourceCompile />
+    <CustomBuildStep>
+      <Message>hlsl build</Message>
+      <Outputs>even_t0.pso;even_t1.pso;even_t2.pso;even_t3.pso;odd_t0.pso;odd_t1.pso;odd_t2.pso;odd_t3.pso</Outputs>
+      <Command>start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=0 /Foeven_t0.pso nlmeans_even.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=1 /Foeven_t1.pso nlmeans_even_t.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=2 /Foeven_t2.pso nlmeans_even_t.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foeven_t3.pso nlmeans_even_t.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=0 /Foodd_t0.pso nlmeans_odd.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=1 /Foodd_t1.pso nlmeans_odd_t.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=2 /Foodd_t2.pso nlmeans_odd_t.hlsl
+start fxc /O3 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foodd_t3.pso nlmeans_odd_t.hlsl</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="nlmeansGPU.cpp" />
@@ -129,7 +134,6 @@
     <None Include=".github\workflows\msbuild.yml" />
     <None Include=".gitignore" />
     <None Include="Custom-NL-Means-Light-GPU.def" />
-    <None Include="hlsl_build.bat" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
