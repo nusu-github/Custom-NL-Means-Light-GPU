@@ -58,7 +58,6 @@
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <WarningLevel>Level4</WarningLevel>
-      <CallingConvention>StdCall</CallingConvention>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
@@ -97,7 +96,6 @@ start fxc /O0 /Tps_3_0 /Eprocess /DTIME_RADIUS=3 /Foodd_t3.pso nlmeans_odd_t.hls
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <IntelJCCErratum>true</IntelJCCErratum>
-      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>$(ProjectName).def</ModuleDefinitionFile>
